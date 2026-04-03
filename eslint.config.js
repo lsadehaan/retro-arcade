@@ -7,7 +7,7 @@ export default [
     languageOptions: { globals: { ...globals.node } },
     rules: {
       'no-console': 'warn',
-      'no-unused-vars': 'error',
+      'no-unused-vars': ['error', { caughtErrorsIgnorePattern: '^_' }],
       'semi': ['error', 'always'],
     },
   },

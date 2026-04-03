@@ -3,41 +3,18 @@
  * Provides: POST /register, POST /login, POST /logout, GET /me
  */
 import bcrypt from 'bcryptjs';
+import rateLimit from '@fastify/rate-limit';
 import { db } from '../db.js';
 import { authenticate } from '../middleware/auth.js';
 
-const BCRYPT_ROUNDS = 10;
+const BCRYPT_ROUNDS = 12;
 const USERNAME_RE = /^[a-zA-Z0-9]{3,20}$/;
 
-function makeRateLimiter() {
-  // Simple in-memory rate limiter: max 10 attempts per IP per minute
-  const rateLimitMap = new Map();
-  return function checkRateLimit(ip) {
-    const now = Date.now();
-    const windowMs = 60 * 1000;
-    const maxAttempts = 10;
-
-    let entry = rateLimitMap.get(ip);
-    if (!entry || now - entry.windowStart > windowMs) {
-      entry = { windowStart: now, count: 0 };
-      rateLimitMap.set(ip, entry);
-    }
-    entry.count += 1;
-    return entry.count <= maxAttempts;
-  };
-}
-
 async function authRoutes(fastify) {
-  // Rate limiter is scoped per plugin instance so tests don't share state
-  const checkRateLimit = makeRateLimiter();
+  await fastify.register(rateLimit, { max: 10, timeWindow: '1 minute' });
 
   // POST /api/auth/register
   fastify.post('/register', async (request, reply) => {
-    const ip = request.ip;
-    if (!checkRateLimit(ip)) {
-      return reply.code(429).send({ error: 'Too many requests' });
-    }
-
     const { username, password } = request.body ?? {};
 
     if (!username || !USERNAME_RE.test(username)) {
@@ -78,11 +55,6 @@ async function authRoutes(fastify) {
 
   // POST /api/auth/login
   fastify.post('/login', async (request, reply) => {
-    const ip = request.ip ?? '::1';
-    if (!checkRateLimit(ip)) {
-      return reply.code(429).send({ error: 'Too many requests' });
-    }
-
     const { username, password } = request.body ?? {};
 
     if (!username || !password) {
@@ -121,8 +93,7 @@ async function authRoutes(fastify) {
 
   // GET /api/auth/me
   fastify.get('/me', { preHandler: authenticate }, async (request, reply) => {
-    const { id, username } = request.user;
-    return reply.send({ ok: true, user: { id, username } });
+    return reply.send({ id: request.user.id, username: request.user.username });
   });
 }
 

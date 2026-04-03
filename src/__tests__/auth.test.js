@@ -246,10 +246,8 @@ test('me: authenticated returns user — 200', async () => {
 
   assert.strictEqual(res.statusCode, 200);
   const body = res.json();
-  assert.strictEqual(body.ok, true);
-  assert.ok(body.user, 'should have user object');
-  assert.ok(body.user.id, 'user should have id');
-  assert.strictEqual(body.user.username, 'meuser');
+  assert.ok(body.id, 'should have id');
+  assert.strictEqual(body.username, 'meuser');
 
   await app.close();
 });
