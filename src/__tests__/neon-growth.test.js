@@ -44,8 +44,9 @@ const fn = new Function(
 );
 
 const makeDomEl = () => ({
-  textContent: '', style: {}, innerHTML: '',
+  textContent: '', style: {}, innerHTML: '', className: '',
   appendChild: () => {}, addEventListener: () => {},
+  querySelector: () => null, remove: () => {},
 });
 
 fn(
@@ -75,7 +76,7 @@ function buildGame() {
     lineWidth: 0, globalAlpha: 1,
   };
   const mockCanvas = { getContext: () => mockCtx, width: 0, height: 0 };
-  const mockOverlay = { innerHTML: '', style: {}, appendChild: () => {} };
+  const mockOverlay = { innerHTML: '', style: {}, appendChild: () => {}, querySelector: () => null };
   const mockEl = { textContent: '' };
 
   const game = new NeonGrowth(mockCanvas, mockOverlay, mockEl, mockEl, mockEl);

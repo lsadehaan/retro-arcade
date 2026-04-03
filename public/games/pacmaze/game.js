@@ -488,7 +488,21 @@
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ score }),
-    }).catch(() => {});
+    })
+      .then(async (res) => {
+        if (res.status === 401) {
+          showOverlayMessage('Log in to save your score');
+        } else if (res.status === 429) {
+          showOverlayMessage('Score already submitted recently');
+        } else if (res.ok) {
+          const data = await res.json();
+          showOverlayMessage(`Saved! You ranked #${data.rank}`);
+          if (window.loadMiniLeaderboard) window.loadMiniLeaderboard();
+        } else {
+          showOverlayMessage('Score could not be saved');
+        }
+      })
+      .catch(() => showOverlayMessage('Score could not be saved'));
   }
 
   // -- Overlay helpers ------------------------------------------------------------
@@ -504,6 +518,19 @@
       overlay.style.display = 'none';
       btnAction();
     });
+  }
+
+  function showOverlayMessage(msg) {
+    const overlay = document.getElementById('overlay');
+    const existing = overlay.querySelector('.overlay-status');
+    if (existing) existing.remove();
+    const p = document.createElement('p');
+    p.className = 'overlay-status';
+    p.style.fontSize = '0.85rem';
+    p.style.color = '#FFD700';
+    p.style.marginTop = '4px';
+    p.textContent = msg;
+    overlay.appendChild(p);
   }
 
   function hideOverlay() {

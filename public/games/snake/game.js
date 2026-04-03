@@ -298,15 +298,42 @@ class NeonGrowth {
       this.highScoreEl.textContent = this.highScore;
     }
 
-    // Submit score (fire-and-forget)
+    // Submit score with feedback
     fetch('/api/scores/neon-growth', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ score: this.score }),
-    }).catch(() => {});
+    })
+      .then(async (res) => {
+        if (res.status === 401) {
+          this._showOverlayMessage('Log in to save your score');
+        } else if (res.status === 429) {
+          this._showOverlayMessage('Score already submitted recently');
+        } else if (res.ok) {
+          const data = await res.json();
+          this._showOverlayMessage(`Saved! You ranked #${data.rank}`);
+          if (window.loadMiniLeaderboard) window.loadMiniLeaderboard();
+        } else {
+          this._showOverlayMessage('Score could not be saved');
+        }
+      })
+      .catch(() => this._showOverlayMessage('Score could not be saved'));
 
     this._showGameOver();
+  }
+
+  _showOverlayMessage(msg) {
+    const ov = this.overlay;
+    const existing = ov.querySelector('.overlay-status');
+    if (existing) existing.remove();
+    const p = document.createElement('p');
+    p.className = 'overlay-status';
+    p.style.fontSize = '0.85rem';
+    p.style.color = '#0ff';
+    p.style.marginTop = '4px';
+    p.textContent = msg;
+    ov.appendChild(p);
   }
 
   _showGameOver() {
