@@ -4,26 +4,114 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Retro Arcade</title>
-  <style>
-    body {
-      margin: 0;
-      background: #000;
-      color: #0f0;
-      font-family: monospace;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      text-align: center;
-    }
-    h1 { font-size: 3rem; letter-spacing: 0.2em; }
-    p  { font-size: 1.2rem; opacity: 0.7; }
-  </style>
+  <link rel="stylesheet" href="/css/main.css" />
 </head>
 <body>
-  <div>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">RETRO ARCADE</a>
+    <div class="navbar-links">
+      <a href="/leaderboard.html">Leaderboard</a>
+      <span id="nav-auth-links" style="display:flex;gap:20px;">
+        <a href="/auth/login.html">Login</a>
+        <a href="/auth/register.html">Register</a>
+      </span>
+      <span id="nav-user-info" style="display:none;align-items:center;gap:12px;">
+        <span class="navbar-user" id="nav-username"></span>
+        <a href="#" id="nav-logout-btn">Logout</a>
+      </span>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="ascii-art">
+     ___  ____ ___ ___  ___     __   ___  ___  __  ___  ____
+    | _ \| __|_  _| _ \/ _ \   /  \ | _ \/ __\/  \|  _\| __|
+    |   /| _|  | | |   | (_) | | /\ ||   | (__ | /\ || | | _|
+    |_\_\|___| |_| |_\_\\___/  |_||_||_\_\\___/|_||_||___/|___|
+    </div>
     <h1>RETRO ARCADE</h1>
-    <p>coming soon</p>
+    <p class="tagline">Classic games. Neon twists. Compete for glory.</p>
+  </section>
+
+  <!-- Games -->
+  <div class="container">
+    <h2 class="section-title">Choose Your Game</h2>
+
+    <div class="card-grid">
+      <!-- Pac-Maze Rush -->
+      <div class="card">
+        <h3>PAC-MAZE RUSH</h3>
+        <p>Classic Pac-Man with Mimic ghosts, freeze pellets, score bombs, and warp berries. New maze every level.</p>
+        <div class="card-top-score" id="top-pacmaze">TOP: ---</div>
+        <a href="/games/pacmaze/" class="btn">PLAY</a>
+      </div>
+
+      <!-- Neon Growth -->
+      <div class="card">
+        <h3>NEON GROWTH</h3>
+        <p>Snake reimagined with fading neon trails, random wall generation, and three food types. Grow or die.</p>
+        <div class="card-top-score" id="top-snake">TOP: ---</div>
+        <a href="/games/snake/" class="btn btn-pink">PLAY</a>
+      </div>
+
+      <!-- Asteroid Defense Surge -->
+      <div class="card">
+        <h3>ASTEROID DEFENSE SURGE</h3>
+        <p>Space Invaders with orbital enemies, 5 weapon tiers, boss waves, and risk/reward power-up stacking.</p>
+        <div class="card-top-score" id="top-space-invaders">TOP: ---</div>
+        <a href="/games/space-invaders/" class="btn btn-gold">PLAY</a>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin:30px 0;">
+      <a href="/leaderboard.html" class="btn">VIEW OVERALL LEADERBOARD</a>
+    </div>
   </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    RETRO ARCADE &copy; 2026 &mdash; Insert Coin to Continue
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script>
+    // Fetch top scores for each game card
+    async function loadTopScores() {
+      const games = [
+        { id: 'pacmaze', el: 'top-pacmaze' },
+        { id: 'neon-growth', el: 'top-snake' },
+        { id: 'space-invaders', el: 'top-space-invaders' },
+      ];
+
+      for (const game of games) {
+        try {
+          const res = await api.get('/api/scores/' + game.id);
+          if (res && res.ok) {
+            const scores = await res.json();
+            const topEl = document.getElementById(game.el);
+            if (scores.length > 0 && topEl) {
+              topEl.textContent = 'TOP: ' + scores[0].username + ' - ' + scores[0].score.toLocaleString();
+            }
+          }
+        } catch {
+          // Silently fail -- game card still shows "TOP: ---"
+        }
+      }
+    }
+
+    // Logout handler
+    document.addEventListener('DOMContentLoaded', () => {
+      const logoutBtn = document.getElementById('nav-logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          api.logout();
+        });
+      }
+      loadTopScores();
+    });
+  </script>
 </body>
 </html>
