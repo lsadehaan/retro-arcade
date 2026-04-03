@@ -267,7 +267,7 @@ class NeonGrowth {
       this.score += food.points;
 
       // Grow
-      this._growQueue += food.segments - 1; // -1 because we already kept the tail this tick
+      this._growQueue += food.segments;
 
       // Speed boost
       if (food.speedDuration > 0) {
