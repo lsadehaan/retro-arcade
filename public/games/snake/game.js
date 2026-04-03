@@ -94,6 +94,41 @@ class NeonGrowth {
       if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
       if (this.running) this._inputBuffer = dir;
     });
+
+    this._bindTouch();
+  }
+
+  _bindTouch() {
+    if (!this.canvas.addEventListener) return;
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    this.canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const t = e.touches[0];
+      touchStartX = t.clientX;
+      touchStartY = t.clientY;
+    }, { passive: false });
+
+    this.canvas.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      if (!this.running) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - touchStartX;
+      const dy = t.clientY - touchStartY;
+      const absDx = Math.abs(dx);
+      const absDy = Math.abs(dy);
+
+      // Require minimum 30px swipe
+      if (Math.max(absDx, absDy) < 30) return;
+
+      // Pick dominant axis
+      if (absDx > absDy) {
+        this._inputBuffer = dx > 0 ? 'right' : 'left';
+      } else {
+        this._inputBuffer = dy > 0 ? 'down' : 'up';
+      }
+    }, { passive: false });
   }
 
   // ── Game state ─────────────────────────────────────────────────────────

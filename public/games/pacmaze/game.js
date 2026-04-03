@@ -826,6 +826,42 @@
     }
   });
 
+  // -- Touch input (swipe detection) ---------------------------------------------
+  (function bindTouch() {
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    // Wait for canvas to be set up, then bind
+    window.addEventListener('load', () => {
+      const c = document.getElementById('game-canvas');
+
+      c.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const t = e.touches[0];
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
+      }, { passive: false });
+
+      c.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        if (state !== 'playing') return;
+        const t = e.changedTouches[0];
+        const dx = t.clientX - touchStartX;
+        const dy = t.clientY - touchStartY;
+        const absDx = Math.abs(dx);
+        const absDy = Math.abs(dy);
+
+        if (Math.max(absDx, absDy) < 30) return;
+
+        if (absDx > absDy) {
+          inputDir = dx > 0 ? { dc: 1, dr: 0 } : { dc: -1, dr: 0 };
+        } else {
+          inputDir = dy > 0 ? { dc: 0, dr: 1 } : { dc: 0, dr: -1 };
+        }
+      }, { passive: false });
+    });
+  })();
+
   // -- Start ----------------------------------------------------------------------
   function startGame() {
     initGame();
