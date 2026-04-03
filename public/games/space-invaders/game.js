@@ -797,11 +797,11 @@ class AsteroidDefenseRenderer {
     }
 
     // Submit score
-    fetch('/api/scores', {
+    fetch('/api/scores/space-invaders', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ gameId: 'space-invaders', score: state.score }),
+      body: JSON.stringify({ score: state.score }),
     }).catch(() => {});
 
     this._showGameOver(state);

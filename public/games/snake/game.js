@@ -299,10 +299,11 @@ class NeonGrowth {
     }
 
     // Submit score (fire-and-forget)
-    fetch('/api/scores', {
+    fetch('/api/scores/neon-growth', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ gameId: 'neon-growth', score: this.score }),
+      credentials: 'include',
+      body: JSON.stringify({ score: this.score }),
     }).catch(() => {});
 
     this._showGameOver();

@@ -570,8 +570,9 @@ describe('Game code structure', () => {
   });
 
   test('game.js submits score to correct API endpoint', () => {
-    assert.ok(gameCode.includes("'/api/scores'"), 'should POST to /api/scores');
-    assert.ok(gameCode.includes("gameId: 'pacmaze'"), 'should use pacmaze as gameId');
+    assert.ok(gameCode.includes("'/api/scores/pacmaze'"), 'should POST to /api/scores/pacmaze');
+    assert.ok(gameCode.includes("credentials: 'include'"), 'should send credentials');
+    assert.ok(!gameCode.includes("gameId: 'pacmaze'"), 'should not include gameId in body');
   });
 
   test('game.js has 4 classic ghost types + Mimic', () => {
