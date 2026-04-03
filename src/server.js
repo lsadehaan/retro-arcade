@@ -7,6 +7,7 @@ import fastifyCookie from '@fastify/cookie';
 import fastifyCors from '@fastify/cors';
 import fastifyStatic from '@fastify/static';
 import authRoutes from './routes/auth.js';
+import scoresRoutes from './routes/scores.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -32,6 +33,7 @@ await app.register(fastifyStatic, {
 
 // Routes
 await app.register(authRoutes, { prefix: '/api/auth' });
+await app.register(scoresRoutes, { prefix: '/api/scores' });
 
 // Health check
 app.get('/api/health', async () => ({ ok: true }));
