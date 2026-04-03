@@ -769,6 +769,9 @@ class AsteroidDefenseRenderer {
     // - Sustained hold fires continuously (needed for charge/laser weapons)
     let moveTouchId = null;
     let fireTouchId = null;
+    let tapStartTime = 0;
+    let tapStartX = 0;
+    let tapStartY = 0;
 
     const getMidX = () => this.canvas.getBoundingClientRect().width / 2;
 
@@ -797,6 +800,9 @@ class AsteroidDefenseRenderer {
         if (moveTouchId === null) {
           // First finger: movement
           moveTouchId = touch.identifier;
+          tapStartTime = performance.now();
+          tapStartX = touch.clientX;
+          tapStartY = touch.clientY;
           updateMoveFromTouch(touch);
         } else if (fireTouchId === null) {
           // Second finger: fire (sustained)
@@ -817,10 +823,13 @@ class AsteroidDefenseRenderer {
       }
     }, { passive: false });
 
-    const handleTouchEnd = (e) => {
+    const handleTouchEnd = (e, isCanceled) => {
       e.preventDefault();
+      // Track which touch was the move finger before we clear it
+      let endedMoveTouch = null;
       for (const touch of e.changedTouches) {
         if (touch.identifier === moveTouchId) {
+          endedMoveTouch = touch;
           moveTouchId = null;
           clearMove();
           // If no remaining touches, also stop fire
@@ -834,16 +843,21 @@ class AsteroidDefenseRenderer {
         }
       }
 
-      // Single-finger tap: if only one touch existed and it was short, fire once
-      if (e.touches.length === 0 && fireTouchId === null) {
-        // Fire a quick shot for single-tap (basic/spread/missile weapons)
-        this.engine.keys.fire = true;
-        requestAnimationFrame(() => { this.engine.keys.fire = false; });
+      // Single-finger tap: only fire if the touch was brief and didn't move far
+      // (prevents unintended shots when releasing a movement touch)
+      // Never fire on touchcancel — canceled touches are not intentional taps
+      if (!isCanceled && e.touches.length === 0 && fireTouchId === null && endedMoveTouch) {
+        const elapsed = performance.now() - tapStartTime;
+        const dist = Math.hypot(endedMoveTouch.clientX - tapStartX, endedMoveTouch.clientY - tapStartY);
+        if (elapsed < 200 && dist < 15) {
+          this.engine.keys.fire = true;
+          requestAnimationFrame(() => { this.engine.keys.fire = false; });
+        }
       }
     };
 
-    this.canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
-    this.canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+    this.canvas.addEventListener('touchend', (e) => handleTouchEnd(e, false), { passive: false });
+    this.canvas.addEventListener('touchcancel', (e) => handleTouchEnd(e, true), { passive: false });
   }
 
   start() {
