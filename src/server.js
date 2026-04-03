@@ -8,6 +8,7 @@ import fastifyCors from '@fastify/cors';
 import fastifyStatic from '@fastify/static';
 import authRoutes from './routes/auth.js';
 import scoresRoutes from './routes/scores.js';
+import leaderboardRoutes from './routes/leaderboard.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -34,6 +35,7 @@ await app.register(fastifyStatic, {
 // Routes
 await app.register(authRoutes, { prefix: '/api/auth' });
 await app.register(scoresRoutes, { prefix: '/api/scores' });
+await app.register(leaderboardRoutes, { prefix: '/api/leaderboard' });
 
 // Health check
 app.get('/api/health', async () => ({ ok: true }));
