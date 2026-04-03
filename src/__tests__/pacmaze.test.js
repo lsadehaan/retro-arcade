@@ -407,52 +407,50 @@ describe('Score API for pacmaze', () => {
     });
     assert.strictEqual(res.statusCode, 200);
     const body = JSON.parse(res.payload);
-    assert.ok(Array.isArray(body.scores), 'scores should be an array');
+    assert.ok(Array.isArray(body), 'scores should be an array');
 
     await app.close();
   });
 
-  test('POST /api/scores with gameId pacmaze returns ok:true (no auth)', async () => {
+  test('POST /api/scores/pacmaze without auth returns 401', async () => {
     const app = await buildApp();
     await app.ready();
 
     const res = await app.inject({
       method: 'POST',
-      url: '/api/scores',
-      payload: { gameId: 'pacmaze', score: 4200 },
+      url: '/api/scores/pacmaze',
+      payload: { score: 4200 },
       headers: { 'content-type': 'application/json' },
     });
-    assert.strictEqual(res.statusCode, 200);
-    const body = JSON.parse(res.payload);
-    assert.strictEqual(body.ok, true);
+    assert.strictEqual(res.statusCode, 401);
 
     await app.close();
   });
 
-  test('unauthenticated score POST does not persist', async () => {
+  test('unauthenticated score POST returns 401 and score is not saved', async () => {
     const app = await buildApp();
     await app.ready();
 
-    const gameId = `pacnoauth${Date.now()}`;
-    await app.inject({
+    const postRes = await app.inject({
       method: 'POST',
-      url: '/api/scores',
-      payload: { gameId, score: 999 },
+      url: '/api/scores/pacmaze',
+      payload: { score: 999 },
       headers: { 'content-type': 'application/json' },
     });
+    assert.strictEqual(postRes.statusCode, 401);
 
-    const res = await app.inject({
+    const getRes = await app.inject({
       method: 'GET',
-      url: `/api/scores/${gameId}`,
+      url: '/api/scores/pacmaze',
     });
-    assert.strictEqual(res.statusCode, 200);
-    const body = JSON.parse(res.payload);
-    assert.strictEqual(body.scores.length, 0, 'unauthenticated scores should not be saved');
+    assert.strictEqual(getRes.statusCode, 200);
+    const body = JSON.parse(getRes.payload);
+    assert.strictEqual(body.length, 0, 'unauthenticated scores should not be saved');
 
     await app.close();
   });
 
-  test('POST /api/scores with valid JWT cookie saves the score', async () => {
+  test('POST /api/scores/pacmaze with valid JWT cookie saves the score', async () => {
     const app = await buildApp();
     await app.ready();
 
@@ -470,13 +468,14 @@ describe('Score API for pacmaze', () => {
     // Submit score with auth cookie
     const postRes = await app.inject({
       method: 'POST',
-      url: '/api/scores',
-      payload: { gameId: 'pacmaze', score: 9001 },
+      url: '/api/scores/pacmaze',
+      payload: { score: 9001 },
       headers: { 'content-type': 'application/json' },
       cookies: { token },
     });
-    assert.strictEqual(postRes.statusCode, 200);
-    assert.strictEqual(JSON.parse(postRes.payload).ok, true);
+    assert.strictEqual(postRes.statusCode, 201);
+    const postBody = JSON.parse(postRes.payload);
+    assert.ok(postBody.id, 'response should have id');
 
     // Retrieve scores and verify
     const getRes = await app.inject({
@@ -484,19 +483,18 @@ describe('Score API for pacmaze', () => {
       url: '/api/scores/pacmaze',
     });
     assert.strictEqual(getRes.statusCode, 200);
-    const getBody = JSON.parse(getRes.payload);
-    const found = getBody.scores.find(s => s.score === 9001 && s.username === username);
+    const scores = JSON.parse(getRes.payload);
+    const found = scores.find(s => s.score === 9001 && s.username === username);
     assert.ok(found, 'authenticated score should appear in leaderboard');
 
     await app.close();
   });
 
-  test('GET /api/scores/:gameId returns scores in descending order', async () => {
+  test('GET /api/scores/pacmaze returns scores in descending order', async () => {
     const app = await buildApp();
     await app.ready();
 
     const { db } = await import('../db.js');
-    const gameId = `pacorder${Date.now()}`;
 
     // Insert multiple users with different scores
     for (let i = 0; i < 5; i++) {
@@ -506,30 +504,29 @@ describe('Score API for pacmaze', () => {
         .run(uname, 'dummy');
       const uid = Number(result.lastInsertRowid);
       db.prepare('INSERT INTO scores (user_id, game_id, score) VALUES (?, ?, ?)')
-        .run(uid, gameId, (i + 1) * 100);
+        .run(uid, 'pacmaze', (i + 1) * 100);
     }
 
     const res = await app.inject({
       method: 'GET',
-      url: `/api/scores/${gameId}`,
+      url: '/api/scores/pacmaze',
     });
+    assert.strictEqual(res.statusCode, 200);
     const body = JSON.parse(res.payload);
-    assert.ok(body.scores.length >= 5, 'should have all scores');
-    for (let i = 1; i < body.scores.length; i++) {
-      assert.ok(body.scores[i - 1].score >= body.scores[i].score,
+    assert.ok(body.length >= 5, 'should have all scores');
+    for (let i = 1; i < body.length; i++) {
+      assert.ok(body[i - 1].score >= body[i].score,
         'scores should be in descending order');
     }
-    assert.strictEqual(body.scores[0].score, 500, 'top score should be 500');
 
     await app.close();
   });
 
-  test('GET /api/scores/:gameId returns max 10 scores', async () => {
+  test('GET /api/scores/pacmaze returns max 10 scores', async () => {
     const app = await buildApp();
     await app.ready();
 
     const { db } = await import('../db.js');
-    const gameId = `paclimit${Date.now()}`;
 
     // Insert 15 scores
     for (let i = 0; i < 15; i++) {
@@ -539,15 +536,16 @@ describe('Score API for pacmaze', () => {
         .run(uname, 'dummy');
       const uid = Number(result.lastInsertRowid);
       db.prepare('INSERT INTO scores (user_id, game_id, score) VALUES (?, ?, ?)')
-        .run(uid, gameId, (i + 1) * 10);
+        .run(uid, 'pacmaze', (i + 1) * 10);
     }
 
     const res = await app.inject({
       method: 'GET',
-      url: `/api/scores/${gameId}`,
+      url: '/api/scores/pacmaze',
     });
+    assert.strictEqual(res.statusCode, 200);
     const body = JSON.parse(res.payload);
-    assert.ok(body.scores.length <= 10, 'should return at most 10 scores');
+    assert.ok(body.length <= 10, 'should return at most 10 scores');
 
     await app.close();
   });

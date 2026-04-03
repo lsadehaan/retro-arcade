@@ -1,7 +1,7 @@
 import { db } from '../db.js';
 import { authenticate } from '../middleware/auth.js';
 
-const VALID_GAMES = ['pacman', 'snake', 'space-invaders'];
+const VALID_GAMES = ['pacman', 'snake', 'space-invaders', 'pacmaze', 'neon-growth'];
 const MAX_SCORE = 999999;
 const RATE_LIMIT_WINDOW_MS = 30 * 1000; // 30 seconds
 
