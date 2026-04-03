@@ -9,3 +9,5 @@ services:
     environment:
       - NODE_ENV=test
       - "DB_PATH=:memory:"
+      - JWT_SECRET=test-secret-for-ci
+      - CORS_ORIGIN=http://localhost:3000

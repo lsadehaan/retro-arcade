@@ -8,6 +8,16 @@ const RATE_LIMIT_WINDOW_MS = 30 * 1000; // 30 seconds
 // In-memory rate limiter: key = `userId:gameId` -> timestamp of last submission
 const lastSubmission = new Map();
 
+// Prune stale entries every 60s to prevent unbounded memory growth
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, ts] of lastSubmission) {
+    if (now - ts > RATE_LIMIT_WINDOW_MS) {
+      lastSubmission.delete(key);
+    }
+  }
+}, 60_000).unref();
+
 function isRateLimited(userId, gameId) {
   const key = `${userId}:${gameId}`;
   const now = Date.now();

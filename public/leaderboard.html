@@ -88,9 +88,8 @@
     let autoRefreshTimer = null;
 
     const GAME_LABELS = {
-      pacman: 'Pac-Maze',
       pacmaze: 'Pac-Maze',
-      snake: 'Neon Growth',
+      'neon-growth': 'Neon Growth',
       'space-invaders': 'Asteroid Def.',
     };
 
@@ -141,18 +140,24 @@
           const tr = document.createElement('tr');
           if (isSelf) tr.classList.add('highlight-self');
 
-          const pacPts = entry.breakdown?.pacman?.points ?? entry.breakdown?.pacmaze?.points ?? 0;
-          const snakePts = entry.breakdown?.snake?.points ?? 0;
+          const pacPts = entry.breakdown?.pacmaze?.points ?? 0;
+          const snakePts = entry.breakdown?.['neon-growth']?.points ?? 0;
           const spacePts = entry.breakdown?.['space-invaders']?.points ?? 0;
 
-          tr.innerHTML = `
-            <td class="${rankClass(entry.rank)}">${entry.rank}</td>
-            <td>${isSelf ? entry.username + ' (YOU)' : entry.username}</td>
-            <td>${entry.total_points}</td>
-            <td>${pacPts}</td>
-            <td>${snakePts}</td>
-            <td>${spacePts}</td>
-          `;
+          const rankTd = document.createElement('td');
+          rankTd.className = rankClass(entry.rank);
+          rankTd.textContent = entry.rank;
+          const nameTd = document.createElement('td');
+          nameTd.textContent = isSelf ? entry.username + ' (YOU)' : entry.username;
+          const totalTd = document.createElement('td');
+          totalTd.textContent = entry.total_points;
+          const pacTd = document.createElement('td');
+          pacTd.textContent = pacPts;
+          const snakeTd = document.createElement('td');
+          snakeTd.textContent = snakePts;
+          const spaceTd = document.createElement('td');
+          spaceTd.textContent = spacePts;
+          tr.append(rankTd, nameTd, totalTd, pacTd, snakeTd, spaceTd);
           tbody.appendChild(tr);
         }
 
@@ -193,15 +198,19 @@
           if (isSelf) tr.classList.add('highlight-self');
 
           const dateStr = entry.submitted_at
-            ? new Date(entry.submitted_at).toLocaleDateString()
+            ? new Date(entry.submitted_at * 1000).toLocaleDateString()
             : '-';
 
-          tr.innerHTML = `
-            <td class="${rankClass(entry.rank)}">${entry.rank}</td>
-            <td>${isSelf ? entry.username + ' (YOU)' : entry.username}</td>
-            <td>${entry.score.toLocaleString()}</td>
-            <td>${dateStr}</td>
-          `;
+          const rankTd = document.createElement('td');
+          rankTd.className = rankClass(entry.rank);
+          rankTd.textContent = entry.rank;
+          const nameTd = document.createElement('td');
+          nameTd.textContent = isSelf ? entry.username + ' (YOU)' : entry.username;
+          const scoreTd = document.createElement('td');
+          scoreTd.textContent = entry.score.toLocaleString();
+          const dateTd = document.createElement('td');
+          dateTd.textContent = dateStr;
+          tr.append(rankTd, nameTd, scoreTd, dateTd);
           tbody.appendChild(tr);
         }
 
