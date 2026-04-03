@@ -246,18 +246,9 @@
       }, { passive: false });
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const logoutBtn = document.getElementById('nav-logout-btn');
-      if (logoutBtn) {
-        logoutBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          api.logout();
-        });
-      }
-    });
-
     async function loadMiniLeaderboard() {
       const list = document.getElementById('lb-list');
+      if (!list) return;
       try {
         const res = await api.get('/api/scores/space-invaders');
         if (!res || !res.ok) throw new Error('fetch failed');
@@ -290,9 +281,18 @@
         list.innerHTML = '<li class="lb-empty">Failed to load</li>';
       }
     }
-
-    loadMiniLeaderboard();
     window.loadMiniLeaderboard = loadMiniLeaderboard;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const logoutBtn = document.getElementById('nav-logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          api.logout();
+        });
+      }
+      loadMiniLeaderboard();
+    });
   </script>
   <script src="game.js"></script>
 </body>

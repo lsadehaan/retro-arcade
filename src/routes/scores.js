@@ -3,7 +3,7 @@ import { authenticate } from '../middleware/auth.js';
 
 const VALID_GAMES = ['pacmaze', 'neon-growth', 'space-invaders'];
 const MAX_SCORE = 999999;
-const RATE_LIMIT_WINDOW_MS = 30 * 1000; // 30 seconds
+const RATE_LIMIT_WINDOW_MS = 3 * 1000; // 3 seconds — prevents double-submit without blocking back-to-back games
 
 // In-memory rate limiter: key = `userId:gameId` -> timestamp of last submission
 const lastSubmission = new Map();
@@ -47,7 +47,7 @@ async function scoresRoutes(fastify) {
     const userId = request.user.id;
 
     if (isRateLimited(userId, game)) {
-      return reply.code(429).send({ error: 'Rate limit exceeded. Max 1 submission per game per 30 seconds.' });
+      return reply.code(429).send({ error: 'Rate limit exceeded. Please wait a few seconds before submitting again.' });
     }
 
     const row = db.prepare(
