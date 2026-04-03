@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neon Growth — Retro Arcade</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #000;
+      color: #0ff;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      user-select: none;
+    }
+
+    h1 {
+      font-size: 2rem;
+      letter-spacing: 0.3em;
+      text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+      margin-bottom: 0.5rem;
+    }
+
+    #hud {
+      display: flex;
+      gap: 2rem;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 6px #0ff;
+    }
+
+    #canvas-wrapper {
+      position: relative;
+    }
+
+    canvas {
+      display: block;
+      border: 2px solid #0ff;
+      box-shadow: 0 0 20px #0ff, 0 0 40px #0080ff;
+    }
+
+    #overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.75);
+      color: #0ff;
+      gap: 1rem;
+    }
+
+    #overlay h2 {
+      font-size: 2.5rem;
+      text-shadow: 0 0 10px #0ff;
+      letter-spacing: 0.2em;
+    }
+
+    #overlay p {
+      font-size: 1.1rem;
+      opacity: 0.85;
+    }
+
+    #overlay button {
+      background: transparent;
+      border: 2px solid #0ff;
+      color: #0ff;
+      font-family: inherit;
+      font-size: 1.1rem;
+      padding: 0.5rem 2rem;
+      cursor: pointer;
+      text-shadow: 0 0 6px #0ff;
+      box-shadow: 0 0 10px #0ff;
+      letter-spacing: 0.1em;
+    }
+
+    #overlay button:hover {
+      background: rgba(0,255,255,0.1);
+    }
+
+    #legend {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      opacity: 0.7;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+    .legend-dot {
+      width: 12px; height: 12px; border-radius: 2px;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <h1>NEON GROWTH</h1>
+  <div id="hud">
+    <span>SCORE: <span id="score">0</span></span>
+    <span>BEST: <span id="high-score">0</span></span>
+    <span>SEGMENTS: <span id="segments">1</span></span>
+  </div>
+  <div id="canvas-wrapper">
+    <canvas id="canvas" width="620" height="620"></canvas>
+    <div id="overlay">
+      <h2>NEON GROWTH</h2>
+      <p>Arrow keys or WASD to move</p>
+      <button id="start-btn">START GAME</button>
+    </div>
+  </div>
+  <div id="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#ffd700;box-shadow:0 0 4px #ffd700;"></div> Gold Apple +50pts (5 seg)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#c0c0c0;box-shadow:0 0 4px #c0c0c0;border-radius:50%"></div> Silver Circle +25pts (2 seg, speed)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00cfff;box-shadow:0 0 4px #00cfff;"></div> Diamond +200pts (10 seg)</div>
+  </div>
+  <script src="game.js" type="module"></script>
+</body>
+</html>
