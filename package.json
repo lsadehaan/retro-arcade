@@ -1,0 +1,14 @@
+{
+  "name": "retro-arcade",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "test": "node --test src/**/*.test.js",
+    "lint": "eslint src/ --ext .js"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0"
+  }
+}
