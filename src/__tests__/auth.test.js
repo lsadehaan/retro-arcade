@@ -104,6 +104,24 @@ test('register: username too short — 400', async () => {
   await app.close();
 });
 
+test('register: password too long (>72 chars, bcrypt max) — 400', async () => {
+  const app = await buildApp();
+  await app.ready();
+
+  const longPassword = 'a'.repeat(73);
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/auth/register',
+    payload: { username: 'longpwuser', password: longPassword },
+  });
+
+  assert.strictEqual(res.statusCode, 400);
+  const body = res.json();
+  assert.ok(body.error.includes('72'), 'error should mention 72 character limit');
+
+  await app.close();
+});
+
 test('register: username with special chars — 400', async () => {
   const app = await buildApp();
   await app.ready();
@@ -279,6 +297,84 @@ test('me: invalid token — 401', async () => {
   });
 
   assert.strictEqual(res.statusCode, 401);
+
+  await app.close();
+});
+
+// ──────────────────────────────────────────────
+// JWT Token Expiry
+// ──────────────────────────────────────────────
+
+test('register: JWT token has exp claim set to ~7 days', async () => {
+  const app = await buildApp();
+  await app.ready();
+
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/auth/register',
+    payload: { username: 'expuser', password: 'testpassword' },
+  });
+
+  assert.strictEqual(res.statusCode, 201);
+
+  const tokenCookie = res.cookies.find((c) => c.name === 'token');
+  assert.ok(tokenCookie, 'should set token cookie');
+
+  // Decode the JWT payload (base64url-encoded middle segment)
+  const parts = tokenCookie.value.split('.');
+  assert.strictEqual(parts.length, 3, 'JWT should have 3 parts');
+  const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
+
+  assert.ok(payload.exp, 'JWT payload should have exp claim');
+  assert.ok(payload.iat, 'JWT payload should have iat claim');
+
+  const sevenDaysInSeconds = 7 * 24 * 60 * 60;
+  const actualDiff = payload.exp - payload.iat;
+
+  // Allow 5 seconds of tolerance for test execution time
+  assert.ok(
+    Math.abs(actualDiff - sevenDaysInSeconds) < 5,
+    `exp should be ~7 days after iat, got diff of ${actualDiff}s (expected ${sevenDaysInSeconds}s)`
+  );
+
+  await app.close();
+});
+
+test('login: JWT token has exp claim set to ~7 days', async () => {
+  const app = await buildApp();
+  await app.ready();
+
+  // Register first
+  await app.inject({
+    method: 'POST',
+    url: '/api/auth/register',
+    payload: { username: 'exploguser', password: 'testpassword' },
+  });
+
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/auth/login',
+    payload: { username: 'exploguser', password: 'testpassword' },
+  });
+
+  assert.strictEqual(res.statusCode, 200);
+
+  const tokenCookie = res.cookies.find((c) => c.name === 'token');
+  assert.ok(tokenCookie, 'should set token cookie');
+
+  const parts = tokenCookie.value.split('.');
+  const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
+
+  assert.ok(payload.exp, 'JWT payload should have exp claim');
+  assert.ok(payload.iat, 'JWT payload should have iat claim');
+
+  const sevenDaysInSeconds = 7 * 24 * 60 * 60;
+  const actualDiff = payload.exp - payload.iat;
+
+  assert.ok(
+    Math.abs(actualDiff - sevenDaysInSeconds) < 5,
+    `exp should be ~7 days after iat, got diff of ${actualDiff}s (expected ${sevenDaysInSeconds}s)`
+  );
 
   await app.close();
 });

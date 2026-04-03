@@ -23,6 +23,9 @@ async function authRoutes(fastify) {
     if (!password || password.length < 8) {
       return reply.code(400).send({ error: 'Password must be at least 8 characters' });
     }
+    if (password.length > 72) {
+      return reply.code(400).send({ error: 'Password must not exceed 72 characters' });
+    }
 
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
@@ -39,7 +42,7 @@ async function authRoutes(fastify) {
       throw err;
     }
 
-    const token = fastify.jwt.sign({ id: user.id, username: user.username });
+    const token = fastify.jwt.sign({ id: user.id, username: user.username }, { expiresIn: '7d' });
     const isProduction = process.env.NODE_ENV === 'production';
 
     reply.setCookie('token', token, {
@@ -71,7 +74,7 @@ async function authRoutes(fastify) {
       return reply.code(401).send({ error: 'Invalid credentials' });
     }
 
-    const token = fastify.jwt.sign({ id: user.id, username: user.username });
+    const token = fastify.jwt.sign({ id: user.id, username: user.username }, { expiresIn: '7d' });
     const isProduction = process.env.NODE_ENV === 'production';
 
     reply.setCookie('token', token, {
