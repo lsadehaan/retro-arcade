@@ -9,7 +9,7 @@ export async function authenticate(request, reply) {
     if (!token) {
       return reply.code(401).send({ ok: false, error: 'Unauthorized' });
     }
-    request.user = await request.jwtVerify({ onlyCookie: false });
+    request.user = await request.jwtVerify({ onlyCookie: true });
   } catch {
     return reply.code(401).send({ ok: false, error: 'Unauthorized' });
   }
