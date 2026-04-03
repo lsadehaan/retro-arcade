@@ -4,7 +4,6 @@
  */
 import { test, describe } from 'node:test';
 import assert from 'node:assert';
-import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -70,8 +69,8 @@ fn(
 );
 
 const {
-  GameEngine, OrbitalEnemy, BossEnemy, Bullet, LaserBeam, PowerUp, Vector2,
-  ENEMY_TYPES, WEAPONS, BOSS_WAVE_INTERVAL, MAX_LIVES, MAX_SHIELD, SHIELD_REGEN_PER_SEC,
+  GameEngine, OrbitalEnemy, BossEnemy, Bullet, PowerUp, Vector2,
+  MAX_LIVES, MAX_SHIELD,
 } = moduleExports;
 
 // ── Vector2 ──────────────────────────────────────────────────────────────────
