@@ -166,7 +166,7 @@
         <canvas id="canvas" width="620" height="620"></canvas>
         <div id="overlay">
           <h2>NEON GROWTH</h2>
-          <p>Arrow keys or WASD to move</p>
+          <p>Arrow keys, WASD, or swipe to move</p>
           <button id="start-btn">START GAME</button>
         </div>
       </div>
@@ -174,6 +174,20 @@
         <div class="legend-item"><div class="legend-dot" style="background:#ffd700;box-shadow:0 0 4px #ffd700;"></div> Gold Apple +50pts (5 seg)</div>
         <div class="legend-item"><div class="legend-dot" style="background:#c0c0c0;box-shadow:0 0 4px #c0c0c0;border-radius:50%"></div> Silver Circle +25pts (2 seg, speed)</div>
         <div class="legend-item"><div class="legend-dot" style="background:#00cfff;box-shadow:0 0 4px #00cfff;"></div> Diamond +200pts (10 seg)</div>
+      </div>
+      <div class="touch-controls" id="touch-controls">
+        <div class="dpad">
+          <div class="dpad-btn dpad-btn--blank"></div>
+          <button class="dpad-btn" data-key="ArrowUp">&#9650;</button>
+          <div class="dpad-btn dpad-btn--blank"></div>
+          <button class="dpad-btn" data-key="ArrowLeft">&#9664;</button>
+          <div class="dpad-btn dpad-btn--blank"></div>
+          <button class="dpad-btn" data-key="ArrowRight">&#9654;</button>
+          <div class="dpad-btn dpad-btn--blank"></div>
+          <button class="dpad-btn" data-key="ArrowDown">&#9660;</button>
+          <div class="dpad-btn dpad-btn--blank"></div>
+        </div>
+        <div class="touch-hint">SWIPE OR TAP TO MOVE</div>
       </div>
     </div>
 
@@ -187,6 +201,16 @@
 
   <script src="/js/api.js"></script>
   <script>
+    // D-pad touch controls
+    document.querySelectorAll('.dpad-btn[data-key]').forEach(btn => {
+      const fire = (e) => {
+        e.preventDefault();
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: btn.dataset.key, bubbles: true }));
+      };
+      btn.addEventListener('touchstart', fire, { passive: false });
+      btn.addEventListener('mousedown', fire);
+    });
+
     document.addEventListener('DOMContentLoaded', () => {
       const logoutBtn = document.getElementById('nav-logout-btn');
       if (logoutBtn) {

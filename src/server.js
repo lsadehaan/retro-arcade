@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import Fastify from 'fastify';
 import fastifyJwt from '@fastify/jwt';
@@ -45,6 +46,15 @@ await app.register(leaderboardRoutes, { prefix: '/api/leaderboard' });
 
 // Health check
 app.get('/api/health', async () => ({ ok: true }));
+
+// Custom 404 handler — serve styled page for non-API routes
+const notFoundHtml = readFileSync(path.join(__dirname, '..', 'public', '404.html'), 'utf8');
+app.setNotFoundHandler((request, reply) => {
+  if (request.url.startsWith('/api/')) {
+    return reply.code(404).send({ error: 'Not Found', statusCode: 404 });
+  }
+  return reply.code(404).type('text/html').send(notFoundHtml);
+});
 
 // Start
 const PORT = Number(process.env.PORT ?? 3000);

@@ -174,8 +174,8 @@
         <div id="overlay">
           <h2>ASTEROID DEFENSE SURGE</h2>
           <p>
-            Arrow keys / WASD — Move<br>
-            Space — Shoot (hold for Charge/Laser)<br>
+            Arrow keys / WASD / Touch — Move<br>
+            Space / Tap — Shoot (hold for Charge/Laser)<br>
             Destroy orbiters to collect weapon upgrades
           </p>
           <button id="start-btn">START GAME</button>
@@ -189,6 +189,14 @@
         <div class="legend-item"><div class="legend-dot" style="background:#f0f;"></div> Missile</div>
         <div class="legend-item"><div class="legend-dot" style="background:#fff;box-shadow:0 0 4px #fff;border-radius:50%"></div> Shield+</div>
       </div>
+      <div class="touch-controls" id="touch-controls">
+        <div class="touch-controls-row">
+          <button class="dpad-btn" data-key="ArrowLeft" style="width:64px;height:64px;font-size:1.6rem;">&#9664;</button>
+          <button class="touch-btn-fire" id="fire-btn">FIRE</button>
+          <button class="dpad-btn" data-key="ArrowRight" style="width:64px;height:64px;font-size:1.6rem;">&#9654;</button>
+        </div>
+        <div class="touch-hint">DRAG TO MOVE &bull; TAP TO FIRE</div>
+      </div>
     </div>
 
     <div class="game-leaderboard">
@@ -201,6 +209,43 @@
 
   <script src="/js/api.js"></script>
   <script>
+    // Touch controls — movement buttons
+    document.querySelectorAll('.dpad-btn[data-key]').forEach(btn => {
+      let interval = null;
+      const startMove = (e) => {
+        e.preventDefault();
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: btn.dataset.key, bubbles: true }));
+        interval = setInterval(() => {
+          document.dispatchEvent(new KeyboardEvent('keydown', { key: btn.dataset.key, bubbles: true }));
+        }, 80);
+      };
+      const stopMove = (e) => {
+        e.preventDefault();
+        clearInterval(interval);
+        document.dispatchEvent(new KeyboardEvent('keyup', { key: btn.dataset.key, bubbles: true }));
+      };
+      btn.addEventListener('touchstart', startMove, { passive: false });
+      btn.addEventListener('touchend', stopMove, { passive: false });
+      btn.addEventListener('touchcancel', stopMove, { passive: false });
+    });
+
+    // Fire button — hold to charge, release to fire
+    const fireBtn = document.getElementById('fire-btn');
+    if (fireBtn) {
+      fireBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true }));
+      }, { passive: false });
+      fireBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        document.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space', bubbles: true }));
+      }, { passive: false });
+      fireBtn.addEventListener('touchcancel', (e) => {
+        e.preventDefault();
+        document.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space', bubbles: true }));
+      }, { passive: false });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const logoutBtn = document.getElementById('nav-logout-btn');
       if (logoutBtn) {
