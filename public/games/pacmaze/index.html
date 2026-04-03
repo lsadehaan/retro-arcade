@@ -18,6 +18,8 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      max-width: 100%;
+      overflow: hidden;
     }
     .game-main h1 {
       color: #FFD700;
@@ -25,6 +27,9 @@
       letter-spacing: 0.15em;
       margin-bottom: 6px;
       text-shadow: 0 0 10px #FFD700;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      text-align: center;
     }
     #hud {
       display: flex;
@@ -32,13 +37,17 @@
       margin-bottom: 8px;
       font-size: 1rem;
       color: #fff;
+      flex-wrap: wrap;
+      justify-content: center;
     }
     #hud span { color: #FFD700; }
-    #canvas-wrap { position: relative; }
+    #canvas-wrap { position: relative; max-width: 100%; }
     canvas {
       display: block;
       border: 2px solid #1a1aff;
       box-shadow: 0 0 20px #1a1aff88;
+      max-width: 100%;
+      height: auto;
     }
     #overlay {
       position: absolute;
@@ -50,7 +59,7 @@
       justify-content: center;
       gap: 14px;
     }
-    #overlay h2 { font-size: 2rem; color: #FFD700; font-family: var(--font-pixel); }
+    #overlay h2 { font-size: 2rem; color: #FFD700; font-family: var(--font-pixel); word-break: break-word; overflow-wrap: break-word; text-align: center; max-width: 90%; }
     #overlay p  { font-size: 1rem; color: #ccc; text-align: center; max-width: 340px; }
     #overlay button {
       background: #1a1aff;
@@ -70,6 +79,9 @@
       margin-top: 6px;
       font-size: 0.78rem;
       color: #aaa;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 100%;
     }
     #item-legend span { color: #fff; }
 

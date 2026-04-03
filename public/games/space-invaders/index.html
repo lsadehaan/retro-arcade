@@ -19,6 +19,8 @@
       flex-direction: column;
       align-items: center;
       user-select: none;
+      max-width: 100%;
+      overflow: hidden;
     }
     .game-main h1 {
       font-size: 1.4rem;
@@ -26,6 +28,9 @@
       text-shadow: 0 0 10px #f0f, 0 0 20px #f0f;
       margin-bottom: 0.4rem;
       color: #f0f;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      text-align: center;
     }
     #hud {
       display: flex;
@@ -37,11 +42,13 @@
       flex-wrap: wrap;
       justify-content: center;
     }
-    #canvas-wrapper { position: relative; }
+    #canvas-wrapper { position: relative; max-width: 100%; }
     canvas {
       display: block;
       border: 2px solid #f0f;
       box-shadow: 0 0 20px #f0f, 0 0 40px #8000ff;
+      max-width: 100%;
+      height: auto;
     }
     #overlay {
       position: absolute;
@@ -59,6 +66,10 @@
       text-shadow: 0 0 10px #f0f;
       letter-spacing: 0.2em;
       font-family: var(--font-pixel);
+      word-break: break-word;
+      overflow-wrap: break-word;
+      text-align: center;
+      max-width: 90%;
     }
     #overlay p {
       font-size: 0.95rem;

@@ -436,6 +436,42 @@ tbody tr.highlight-self {
   text-shadow: 0 0 6px var(--neon-cyan);
 }
 
+/* ---------- Game Canvas Responsive ---------- */
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+.game-main {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.game-main h1,
+.game-main h2 {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  text-align: center;
+}
+
+#overlay h2 {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+#overlay p {
+  max-width: 90%;
+  word-wrap: break-word;
+}
+
+#legend,
+#item-legend {
+  max-width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 768px) {
   .hero h1 { font-size: 1.2rem; }
@@ -444,4 +480,8 @@ tbody tr.highlight-self {
   .navbar-links { gap: 12px; }
   .navbar-links a { font-size: 0.5rem; }
   .card-grid { grid-template-columns: 1fr; }
+
+  .game-layout { padding: 12px 8px; }
+  .game-main h1 { font-size: 1.1rem; letter-spacing: 0.05em; }
+  #hud { font-size: 0.8rem; gap: 0.8rem; flex-wrap: wrap; justify-content: center; }
 }
