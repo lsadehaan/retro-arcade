@@ -67,7 +67,7 @@ describe('POST /api/scores/:game', () => {
     await app.ready();
 
     const user = await registerUser(app, 'scorer1');
-    const res = await submitScore(app, user.token, 'pacman', 5000);
+    const res = await submitScore(app, user.token, 'pacmaze', 5000);
 
     assert.strictEqual(res.statusCode, 201);
     const body = res.json();
@@ -83,7 +83,7 @@ describe('POST /api/scores/:game', () => {
 
     const res = await app.inject({
       method: 'POST',
-      url: '/api/scores/pacman',
+      url: '/api/scores/pacmaze',
       payload: { score: 1000 },
     });
 
@@ -111,7 +111,7 @@ describe('POST /api/scores/:game', () => {
     await app.ready();
 
     const user = await registerUser(app, 'scorer3');
-    const res = await submitScore(app, user.token, 'pacman', 3.14);
+    const res = await submitScore(app, user.token, 'pacmaze', 3.14);
 
     assert.strictEqual(res.statusCode, 400);
 
@@ -123,7 +123,7 @@ describe('POST /api/scores/:game', () => {
     await app.ready();
 
     const user = await registerUser(app, 'scorer4');
-    const res = await submitScore(app, user.token, 'pacman', -1);
+    const res = await submitScore(app, user.token, 'pacmaze', -1);
 
     assert.strictEqual(res.statusCode, 400);
 
@@ -135,7 +135,7 @@ describe('POST /api/scores/:game', () => {
     await app.ready();
 
     const user = await registerUser(app, 'scorer5');
-    const res = await submitScore(app, user.token, 'pacman', 1000000);
+    const res = await submitScore(app, user.token, 'pacmaze', 1000000);
 
     assert.strictEqual(res.statusCode, 400);
 
@@ -151,7 +151,7 @@ describe('POST /api/scores/:game', () => {
     // First submission -- do NOT clear rate limiter
     const res1 = await app.inject({
       method: 'POST',
-      url: '/api/scores/pacman',
+      url: '/api/scores/pacmaze',
       payload: { score: 1000 },
       cookies: { token: user.token },
     });
@@ -160,7 +160,7 @@ describe('POST /api/scores/:game', () => {
     // Second submission -- same user, same game, should be rate limited
     const res2 = await app.inject({
       method: 'POST',
-      url: '/api/scores/pacman',
+      url: '/api/scores/pacmaze',
       payload: { score: 2000 },
       cookies: { token: user.token },
     });
@@ -176,7 +176,7 @@ describe('POST /api/scores/:game', () => {
 
     const user = await registerUser(app, 'allgames');
 
-    for (const game of ['pacman', 'snake', 'space-invaders']) {
+    for (const game of ['pacmaze', 'neon-growth', 'space-invaders']) {
       const res = await submitScore(app, user.token, game, 100);
       assert.strictEqual(res.statusCode, 201, `${game} should be accepted`);
     }
@@ -203,13 +203,13 @@ describe('GET /api/scores/:game', () => {
         'INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING id'
       ).get(username, hash);
       // Insert a high score and a low score per user
-      db.prepare('INSERT INTO scores (user_id, game_id, score) VALUES (?, ?, ?)').run(user.id, 'pacman', i * 100);
-      db.prepare('INSERT INTO scores (user_id, game_id, score) VALUES (?, ?, ?)').run(user.id, 'pacman', i * 10);
+      db.prepare('INSERT INTO scores (user_id, game_id, score) VALUES (?, ?, ?)').run(user.id, 'pacmaze', i * 100);
+      db.prepare('INSERT INTO scores (user_id, game_id, score) VALUES (?, ?, ?)').run(user.id, 'pacmaze', i * 10);
     }
 
     const res = await app.inject({
       method: 'GET',
-      url: '/api/scores/pacman',
+      url: '/api/scores/pacmaze',
     });
 
     assert.strictEqual(res.statusCode, 200);
@@ -248,7 +248,7 @@ describe('GET /api/scores/:game', () => {
 
     const res = await app.inject({
       method: 'GET',
-      url: '/api/scores/snake',
+      url: '/api/scores/neon-growth',
     });
 
     assert.strictEqual(res.statusCode, 200);
@@ -272,12 +272,12 @@ describe('GET /api/scores/:game/me', () => {
     const bob = await registerUser(app, 'bob');
 
     // Alice scores higher
-    await submitScore(app, alice.token, 'snake', 5000);
-    await submitScore(app, bob.token, 'snake', 3000);
+    await submitScore(app, alice.token, 'neon-growth', 5000);
+    await submitScore(app, bob.token, 'neon-growth', 3000);
 
     const res = await app.inject({
       method: 'GET',
-      url: '/api/scores/snake/me',
+      url: '/api/scores/neon-growth/me',
       cookies: { token: bob.token },
     });
 
@@ -295,7 +295,7 @@ describe('GET /api/scores/:game/me', () => {
 
     const res = await app.inject({
       method: 'GET',
-      url: '/api/scores/pacman/me',
+      url: '/api/scores/pacmaze/me',
     });
 
     assert.strictEqual(res.statusCode, 401);
@@ -311,7 +311,7 @@ describe('GET /api/scores/:game/me', () => {
 
     const res = await app.inject({
       method: 'GET',
-      url: '/api/scores/pacman/me',
+      url: '/api/scores/pacmaze/me',
       cookies: { token: user.token },
     });
 
@@ -334,15 +334,15 @@ describe('GET /api/leaderboard', () => {
     const bob = await registerUser(app, 'bob');
     const charlie = await registerUser(app, 'charlie');
 
-    // Pacman: alice 1st (25pts), bob 2nd (18pts), charlie 3rd (15pts)
-    await submitScore(app, alice.token, 'pacman', 9000);
-    await submitScore(app, bob.token, 'pacman', 7000);
-    await submitScore(app, charlie.token, 'pacman', 5000);
+    // Pacmaze: alice 1st (25pts), bob 2nd (18pts), charlie 3rd (15pts)
+    await submitScore(app, alice.token, 'pacmaze', 9000);
+    await submitScore(app, bob.token, 'pacmaze', 7000);
+    await submitScore(app, charlie.token, 'pacmaze', 5000);
 
-    // Snake: bob 1st (25pts), charlie 2nd (18pts), alice 3rd (15pts)
-    await submitScore(app, bob.token, 'snake', 8000);
-    await submitScore(app, charlie.token, 'snake', 6000);
-    await submitScore(app, alice.token, 'snake', 4000);
+    // Neon-growth: bob 1st (25pts), charlie 2nd (18pts), alice 3rd (15pts)
+    await submitScore(app, bob.token, 'neon-growth', 8000);
+    await submitScore(app, charlie.token, 'neon-growth', 6000);
+    await submitScore(app, alice.token, 'neon-growth', 4000);
 
     // Space Invaders: charlie 1st (25pts), alice 2nd (18pts), bob 3rd (15pts)
     await submitScore(app, charlie.token, 'space-invaders', 10000);
@@ -373,8 +373,8 @@ describe('GET /api/leaderboard', () => {
     assert.strictEqual(body[2].rank, 3);
 
     // Verify breakdown structure
-    assert.deepStrictEqual(body[0].breakdown.pacman, { points: 25, rank: 1 });
-    assert.deepStrictEqual(body[0].breakdown.snake, { points: 15, rank: 3 });
+    assert.deepStrictEqual(body[0].breakdown.pacmaze, { points: 25, rank: 1 });
+    assert.deepStrictEqual(body[0].breakdown['neon-growth'], { points: 15, rank: 3 });
     assert.deepStrictEqual(body[0].breakdown['space-invaders'], { points: 18, rank: 2 });
 
     await app.close();
@@ -404,12 +404,12 @@ describe('GET /api/leaderboard', () => {
     const bob = await registerUser(app, 'bob');
 
     // Alice plays all games
-    await submitScore(app, alice.token, 'pacman', 9000);
-    await submitScore(app, alice.token, 'snake', 8000);
+    await submitScore(app, alice.token, 'pacmaze', 9000);
+    await submitScore(app, alice.token, 'neon-growth', 8000);
     await submitScore(app, alice.token, 'space-invaders', 7000);
 
-    // Bob only plays pacman
-    await submitScore(app, bob.token, 'pacman', 10000);
+    // Bob only plays pacmaze
+    await submitScore(app, bob.token, 'pacmaze', 10000);
 
     const res = await app.inject({
       method: 'GET',
@@ -427,8 +427,8 @@ describe('GET /api/leaderboard', () => {
     assert.strictEqual(bobEntry.total_points, 25);
     assert.strictEqual(body[0].username, 'alice', 'alice should be rank 1');
 
-    // Bob should not have snake or space-invaders in breakdown
-    assert.strictEqual(bobEntry.breakdown.snake, undefined);
+    // Bob should not have neon-growth or space-invaders in breakdown
+    assert.strictEqual(bobEntry.breakdown['neon-growth'], undefined);
     assert.strictEqual(bobEntry.breakdown['space-invaders'], undefined);
 
     await app.close();

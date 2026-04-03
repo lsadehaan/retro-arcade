@@ -1,7 +1,7 @@
 import { db } from '../db.js';
 import { pointsForPosition } from '../utils/f1-points.js';
 
-const GAMES = ['pacman', 'snake', 'space-invaders'];
+const GAMES = ['pacmaze', 'neon-growth', 'space-invaders'];
 
 /**
  * Computes per-game rankings (best score per user) for a given game.
