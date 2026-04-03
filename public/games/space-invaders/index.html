@@ -4,49 +4,45 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Asteroid Defense Surge — Retro Arcade</title>
+  <link rel="stylesheet" href="/css/main.css" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: #000;
-      color: #0ff;
-      font-family: 'Courier New', monospace;
+    .game-layout {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+      flex-wrap: wrap;
+    }
+    .game-main {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      min-height: 100vh;
       user-select: none;
     }
-
-    h1 {
-      font-size: 1.8rem;
+    .game-main h1 {
+      font-size: 1.4rem;
       letter-spacing: 0.2em;
       text-shadow: 0 0 10px #f0f, 0 0 20px #f0f;
       margin-bottom: 0.4rem;
       color: #f0f;
     }
-
     #hud {
       display: flex;
       gap: 1.5rem;
       font-size: 0.9rem;
       margin-bottom: 0.4rem;
       text-shadow: 0 0 6px #0ff;
+      color: #0ff;
       flex-wrap: wrap;
       justify-content: center;
     }
-
-    #canvas-wrapper {
-      position: relative;
-    }
-
+    #canvas-wrapper { position: relative; }
     canvas {
       display: block;
       border: 2px solid #f0f;
       box-shadow: 0 0 20px #f0f, 0 0 40px #8000ff;
     }
-
     #overlay {
       position: absolute;
       inset: 0;
@@ -58,13 +54,12 @@
       color: #f0f;
       gap: 0.8rem;
     }
-
     #overlay h2 {
-      font-size: 2.2rem;
+      font-size: 1.8rem;
       text-shadow: 0 0 10px #f0f;
       letter-spacing: 0.2em;
+      font-family: var(--font-pixel);
     }
-
     #overlay p {
       font-size: 0.95rem;
       opacity: 0.85;
@@ -72,7 +67,6 @@
       max-width: 380px;
       line-height: 1.6;
     }
-
     #overlay button {
       background: transparent;
       border: 2px solid #f0f;
@@ -85,11 +79,7 @@
       box-shadow: 0 0 10px #f0f;
       letter-spacing: 0.1em;
     }
-
-    #overlay button:hover {
-      background: rgba(255,0,255,0.1);
-    }
-
+    #overlay button:hover { background: rgba(255,0,255,0.1); }
     #legend {
       display: flex;
       gap: 1.2rem;
@@ -99,43 +89,148 @@
       flex-wrap: wrap;
       justify-content: center;
     }
-
     .legend-item { display: flex; align-items: center; gap: 0.3rem; }
     .legend-dot {
       width: 10px; height: 10px; border-radius: 2px;
       display: inline-block;
     }
+
+    /* Leaderboard panel */
+    .game-leaderboard {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 16px;
+      min-width: 220px;
+      max-width: 280px;
+    }
+    .game-leaderboard h3 {
+      font-family: var(--font-pixel);
+      font-size: 0.55rem;
+      color: var(--neon-gold);
+      text-shadow: 0 0 6px rgba(255,215,0,0.4);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .lb-list { list-style: none; font-size: 0.8rem; }
+    .lb-list li {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .lb-list li:last-child { border-bottom: none; }
+    .lb-rank { color: var(--neon-cyan); min-width: 28px; }
+    .lb-name { flex: 1; margin: 0 8px; }
+    .lb-score { color: var(--neon-green); font-family: var(--font-mono); }
+    .lb-empty { color: #555; font-size: 0.75rem; text-align: center; padding: 12px 0; }
+
+    @media (max-width: 900px) {
+      .game-layout { flex-direction: column; align-items: center; }
+      .game-leaderboard { max-width: 100%; min-width: 280px; }
+    }
   </style>
 </head>
 <body>
-  <h1>ASTEROID DEFENSE SURGE</h1>
-  <div id="hud">
-    <span>SCORE: <span id="score">0</span></span>
-    <span>WAVE: <span id="wave">1</span></span>
-    <span>LIVES: <span id="lives">&#9733;&#9733;&#9733;</span></span>
-    <span>SHIELD: <span id="shield">100</span></span>
-    <span>WEAPON: <span id="weapon">BASIC</span></span>
-  </div>
-  <div id="canvas-wrapper">
-    <canvas id="canvas" width="700" height="520"></canvas>
-    <div id="overlay">
-      <h2>ASTEROID DEFENSE SURGE</h2>
-      <p>
-        Arrow keys / WASD — Move<br>
-        Space — Shoot (hold for Charge/Laser)<br>
-        Destroy orbiters to collect weapon upgrades
-      </p>
-      <button id="start-btn">START GAME</button>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">RETRO ARCADE</a>
+    <div class="navbar-links">
+      <a href="/leaderboard.html">Leaderboard</a>
+      <span id="nav-auth-links" style="display:flex;gap:20px;">
+        <a href="/auth/login.html">Login</a>
+        <a href="/auth/register.html">Register</a>
+      </span>
+      <span id="nav-user-info" style="display:none;align-items:center;gap:12px;">
+        <span class="navbar-user" id="nav-username"></span>
+        <a href="#" id="nav-logout-btn">Logout</a>
+      </span>
+    </div>
+  </nav>
+
+  <div class="game-layout">
+    <div class="game-main">
+      <h1>ASTEROID DEFENSE SURGE</h1>
+      <div id="hud">
+        <span>SCORE: <span id="score">0</span></span>
+        <span>WAVE: <span id="wave">1</span></span>
+        <span>LIVES: <span id="lives">&#9733;&#9733;&#9733;</span></span>
+        <span>SHIELD: <span id="shield">100</span></span>
+        <span>WEAPON: <span id="weapon">BASIC</span></span>
+      </div>
+      <div id="canvas-wrapper">
+        <canvas id="canvas" width="700" height="520"></canvas>
+        <div id="overlay">
+          <h2>ASTEROID DEFENSE SURGE</h2>
+          <p>
+            Arrow keys / WASD — Move<br>
+            Space — Shoot (hold for Charge/Laser)<br>
+            Destroy orbiters to collect weapon upgrades
+          </p>
+          <button id="start-btn">START GAME</button>
+        </div>
+      </div>
+      <div id="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#0ff;"></div> Basic</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ff0;"></div> Spread</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f80;"></div> Charge</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#0f8;"></div> Laser</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f0f;"></div> Missile</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#fff;box-shadow:0 0 4px #fff;border-radius:50%"></div> Shield+</div>
+      </div>
+    </div>
+
+    <div class="game-leaderboard">
+      <h3>TOP SCORES</h3>
+      <ul class="lb-list" id="lb-list">
+        <li class="lb-empty">Loading...</li>
+      </ul>
     </div>
   </div>
-  <div id="legend">
-    <div class="legend-item"><div class="legend-dot" style="background:#0ff;"></div> Basic</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#ff0;"></div> Spread</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#f80;"></div> Charge</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#0f8;"></div> Laser</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#f0f;"></div> Missile</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#fff;box-shadow:0 0 4px #fff;border-radius:50%"></div> Shield+</div>
-  </div>
+
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const logoutBtn = document.getElementById('nav-logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          api.logout();
+        });
+      }
+    });
+
+    async function loadMiniLeaderboard() {
+      const list = document.getElementById('lb-list');
+      try {
+        const res = await api.get('/api/scores/space-invaders');
+        if (!res || !res.ok) throw new Error('fetch failed');
+        const scores = await res.json();
+        const user = await api.getUser();
+
+        if (scores.length === 0) {
+          list.innerHTML = '<li class="lb-empty">No scores yet</li>';
+          return;
+        }
+
+        list.innerHTML = '';
+        for (const s of scores) {
+          const isSelf = user && s.username === user.username;
+          const li = document.createElement('li');
+          if (isSelf) li.style.color = 'var(--neon-gold)';
+          li.innerHTML =
+            '<span class="lb-rank">#' + s.rank + '</span>' +
+            '<span class="lb-name">' + (isSelf ? s.username + ' (YOU)' : s.username) + '</span>' +
+            '<span class="lb-score">' + s.score.toLocaleString() + '</span>';
+          list.appendChild(li);
+        }
+      } catch {
+        list.innerHTML = '<li class="lb-empty">Failed to load</li>';
+      }
+    }
+
+    loadMiniLeaderboard();
+  </script>
   <script src="game.js"></script>
 </body>
 </html>

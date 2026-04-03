@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Retro Arcade</title>
+  <link rel="stylesheet" href="/css/main.css" />
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">RETRO ARCADE</a>
+    <div class="navbar-links">
+      <a href="/leaderboard.html">Leaderboard</a>
+      <span id="nav-auth-links" style="display:flex;gap:20px;">
+        <a href="/auth/login.html">Login</a>
+        <a href="/auth/register.html">Register</a>
+      </span>
+      <span id="nav-user-info" style="display:none;align-items:center;gap:12px;">
+        <span class="navbar-user" id="nav-username"></span>
+        <a href="#" id="nav-logout-btn">Logout</a>
+      </span>
+    </div>
+  </nav>
+
+  <!-- Login Form -->
+  <div class="form-container">
+    <h2>LOGIN</h2>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" autocomplete="username" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" required />
+      </div>
+      <div class="form-error" id="form-error"></div>
+      <button type="submit" class="btn" style="width:100%;margin-top:8px;">LOGIN</button>
+    </form>
+    <div class="form-footer">
+      Don't have an account? <a href="/auth/register.html">Register</a>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('login-form');
+      const errorEl = document.getElementById('form-error');
+
+      // Logout handler
+      const logoutBtn = document.getElementById('nav-logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          api.logout();
+        });
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorEl.textContent = '';
+
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+
+        if (!username || !password) {
+          errorEl.textContent = 'Username and password are required.';
+          return;
+        }
+
+        try {
+          const res = await api.post('/api/auth/login', { username, password });
+          if (!res) return;
+
+          if (res.ok) {
+            api.clearCache();
+            window.location.href = '/';
+          } else {
+            const data = await res.json();
+            errorEl.textContent = data.error || 'Login failed.';
+          }
+        } catch {
+          errorEl.textContent = 'Network error. Please try again.';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

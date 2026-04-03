@@ -4,22 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pac-Maze Rush — Retro Arcade</title>
+  <link rel="stylesheet" href="/css/main.css" />
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: #000;
-      color: #fff;
-      font-family: 'Courier New', monospace;
+    .game-layout {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+      flex-wrap: wrap;
+    }
+    .game-main {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      padding: 10px;
     }
-    h1 {
+    .game-main h1 {
       color: #FFD700;
-      font-size: 2rem;
+      font-size: 1.5rem;
       letter-spacing: 0.15em;
       margin-bottom: 6px;
       text-shadow: 0 0 10px #FFD700;
@@ -32,9 +34,7 @@
       color: #fff;
     }
     #hud span { color: #FFD700; }
-    #canvas-wrap {
-      position: relative;
-    }
+    #canvas-wrap { position: relative; }
     canvas {
       display: block;
       border: 2px solid #1a1aff;
@@ -50,7 +50,7 @@
       justify-content: center;
       gap: 14px;
     }
-    #overlay h2 { font-size: 2rem; color: #FFD700; }
+    #overlay h2 { font-size: 2rem; color: #FFD700; font-family: var(--font-pixel); }
     #overlay p  { font-size: 1rem; color: #ccc; text-align: center; max-width: 340px; }
     #overlay button {
       background: #1a1aff;
@@ -72,29 +72,134 @@
       color: #aaa;
     }
     #item-legend span { color: #fff; }
+
+    /* Leaderboard panel */
+    .game-leaderboard {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 16px;
+      min-width: 220px;
+      max-width: 280px;
+    }
+    .game-leaderboard h3 {
+      font-family: var(--font-pixel);
+      font-size: 0.55rem;
+      color: var(--neon-gold);
+      text-shadow: 0 0 6px rgba(255,215,0,0.4);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .lb-list { list-style: none; font-size: 0.8rem; }
+    .lb-list li {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .lb-list li:last-child { border-bottom: none; }
+    .lb-rank { color: var(--neon-cyan); min-width: 28px; }
+    .lb-name { flex: 1; margin: 0 8px; }
+    .lb-score { color: var(--neon-green); font-family: var(--font-mono); }
+    .lb-empty { color: #555; font-size: 0.75rem; text-align: center; padding: 12px 0; }
+
+    @media (max-width: 900px) {
+      .game-layout { flex-direction: column; align-items: center; }
+      .game-leaderboard { max-width: 100%; min-width: 280px; }
+    }
   </style>
 </head>
 <body>
-  <h1>PAC-MAZE RUSH</h1>
-  <div id="hud">
-    <div>SCORE: <span id="score-display">0</span></div>
-    <div>LIVES: <span id="lives-display">3</span></div>
-    <div>LEVEL: <span id="level-display">1</span></div>
-  </div>
-  <div id="canvas-wrap">
-    <canvas id="game-canvas"></canvas>
-    <div id="overlay">
-      <h2>PAC-MAZE RUSH</h2>
-      <p>Arrow keys or WASD to move. Eat all dots to advance!<br>Power pellets let you eat ghosts!</p>
-      <div id="item-legend">
-        <div>&#10052; Freeze ghosts 5s</div>
-        <div>&#11088; Score Bomb 2x 10s</div>
-        <div>&#127744; Warp Berry (teleport)</div>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">RETRO ARCADE</a>
+    <div class="navbar-links">
+      <a href="/leaderboard.html">Leaderboard</a>
+      <span id="nav-auth-links" style="display:flex;gap:20px;">
+        <a href="/auth/login.html">Login</a>
+        <a href="/auth/register.html">Register</a>
+      </span>
+      <span id="nav-user-info" style="display:none;align-items:center;gap:12px;">
+        <span class="navbar-user" id="nav-username"></span>
+        <a href="#" id="nav-logout-btn">Logout</a>
+      </span>
+    </div>
+  </nav>
+
+  <div class="game-layout">
+    <div class="game-main">
+      <h1>PAC-MAZE RUSH</h1>
+      <div id="hud">
+        <div>SCORE: <span id="score-display">0</span></div>
+        <div>LIVES: <span id="lives-display">3</span></div>
+        <div>LEVEL: <span id="level-display">1</span></div>
       </div>
-      <button id="start-btn">START GAME</button>
+      <div id="canvas-wrap">
+        <canvas id="game-canvas"></canvas>
+        <div id="overlay">
+          <h2>PAC-MAZE RUSH</h2>
+          <p>Arrow keys or WASD to move. Eat all dots to advance!<br>Power pellets let you eat ghosts!</p>
+          <div id="item-legend">
+            <div>&#10052; Freeze ghosts 5s</div>
+            <div>&#11088; Score Bomb 2x 10s</div>
+            <div>&#127744; Warp Berry (teleport)</div>
+          </div>
+          <button id="start-btn">START GAME</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-leaderboard">
+      <h3>TOP SCORES</h3>
+      <ul class="lb-list" id="lb-list">
+        <li class="lb-empty">Loading...</li>
+      </ul>
     </div>
   </div>
 
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const logoutBtn = document.getElementById('nav-logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          api.logout();
+        });
+      }
+    });
+
+    async function loadMiniLeaderboard() {
+      const list = document.getElementById('lb-list');
+      try {
+        const res = await api.get('/api/scores/pacmaze');
+        if (!res || !res.ok) throw new Error('fetch failed');
+        const scores = await res.json();
+        const user = await api.getUser();
+
+        if (scores.length === 0) {
+          list.innerHTML = '<li class="lb-empty">No scores yet</li>';
+          return;
+        }
+
+        list.innerHTML = '';
+        for (const s of scores) {
+          const isSelf = user && s.username === user.username;
+          const li = document.createElement('li');
+          if (isSelf) li.style.color = 'var(--neon-gold)';
+          li.innerHTML =
+            '<span class="lb-rank">#' + s.rank + '</span>' +
+            '<span class="lb-name">' + (isSelf ? s.username + ' (YOU)' : s.username) + '</span>' +
+            '<span class="lb-score">' + s.score.toLocaleString() + '</span>';
+          list.appendChild(li);
+        }
+      } catch {
+        list.innerHTML = '<li class="lb-empty">Failed to load</li>';
+      }
+    }
+
+    loadMiniLeaderboard();
+  </script>
   <script src="game.js"></script>
 </body>
 </html>

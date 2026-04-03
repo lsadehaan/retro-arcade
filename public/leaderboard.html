@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leaderboard — Retro Arcade</title>
+  <link rel="stylesheet" href="/css/main.css" />
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">RETRO ARCADE</a>
+    <div class="navbar-links">
+      <a href="/leaderboard.html">Leaderboard</a>
+      <span id="nav-auth-links" style="display:flex;gap:20px;">
+        <a href="/auth/login.html">Login</a>
+        <a href="/auth/register.html">Register</a>
+      </span>
+      <span id="nav-user-info" style="display:none;align-items:center;gap:12px;">
+        <span class="navbar-user" id="nav-username"></span>
+        <a href="#" id="nav-logout-btn">Logout</a>
+      </span>
+    </div>
+  </nav>
+
+  <div class="container" style="padding-top:30px;">
+    <h1 class="section-title" style="margin-top:0;">Leaderboard</h1>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="overall">Overall</button>
+      <button class="tab-btn" data-tab="per-game">Per Game</button>
+    </div>
+
+    <!-- Overall Tab -->
+    <div class="tab-content active" id="tab-overall">
+      <div class="loading" id="overall-loading">LOADING...</div>
+      <div class="table-wrap" id="overall-table-wrap" style="display:none;">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Player</th>
+              <th>Total Pts</th>
+              <th>Pac-Maze</th>
+              <th>Neon Growth</th>
+              <th>Asteroid Def.</th>
+            </tr>
+          </thead>
+          <tbody id="overall-tbody"></tbody>
+        </table>
+      </div>
+      <p id="overall-empty" style="display:none;text-align:center;padding:30px;color:#555;">No scores yet. Be the first to play!</p>
+    </div>
+
+    <!-- Per-Game Tab -->
+    <div class="tab-content" id="tab-per-game">
+      <select class="game-select" id="game-selector">
+        <option value="pacmaze">Pac-Maze Rush</option>
+        <option value="snake">Neon Growth</option>
+        <option value="space-invaders">Asteroid Defense Surge</option>
+      </select>
+      <div class="loading" id="game-loading">LOADING...</div>
+      <div class="table-wrap" id="game-table-wrap" style="display:none;">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Player</th>
+              <th>Score</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="game-tbody"></tbody>
+        </table>
+      </div>
+      <p id="game-empty" style="display:none;text-align:center;padding:30px;color:#555;">No scores for this game yet.</p>
+    </div>
+  </div>
+
+  <footer class="footer">
+    RETRO ARCADE &copy; 2026 &mdash; Insert Coin to Continue
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script>
+    let currentUser = null;
+    let autoRefreshTimer = null;
+
+    const GAME_LABELS = {
+      pacman: 'Pac-Maze',
+      pacmaze: 'Pac-Maze',
+      snake: 'Neon Growth',
+      'space-invaders': 'Asteroid Def.',
+    };
+
+    // ---- Tab switching ----
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // ---- Rank class ----
+    function rankClass(rank) {
+      if (rank === 1) return 'rank-1';
+      if (rank === 2) return 'rank-2';
+      if (rank === 3) return 'rank-3';
+      return '';
+    }
+
+    // ---- Overall leaderboard ----
+    async function loadOverall() {
+      const loading = document.getElementById('overall-loading');
+      const tableWrap = document.getElementById('overall-table-wrap');
+      const empty = document.getElementById('overall-empty');
+      const tbody = document.getElementById('overall-tbody');
+
+      loading.style.display = 'block';
+      tableWrap.style.display = 'none';
+      empty.style.display = 'none';
+
+      try {
+        const res = await api.get('/api/leaderboard');
+        if (!res || !res.ok) throw new Error('fetch failed');
+        const data = await res.json();
+
+        loading.style.display = 'none';
+
+        if (data.length === 0) {
+          empty.style.display = 'block';
+          return;
+        }
+
+        tbody.innerHTML = '';
+        for (const entry of data) {
+          const isSelf = currentUser && entry.username === currentUser.username;
+          const tr = document.createElement('tr');
+          if (isSelf) tr.classList.add('highlight-self');
+
+          const pacPts = entry.breakdown?.pacman?.points ?? entry.breakdown?.pacmaze?.points ?? 0;
+          const snakePts = entry.breakdown?.snake?.points ?? 0;
+          const spacePts = entry.breakdown?.['space-invaders']?.points ?? 0;
+
+          tr.innerHTML = `
+            <td class="${rankClass(entry.rank)}">${entry.rank}</td>
+            <td>${isSelf ? entry.username + ' (YOU)' : entry.username}</td>
+            <td>${entry.total_points}</td>
+            <td>${pacPts}</td>
+            <td>${snakePts}</td>
+            <td>${spacePts}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+
+        tableWrap.style.display = 'block';
+      } catch {
+        loading.textContent = 'Failed to load leaderboard.';
+      }
+    }
+
+    // ---- Per-game leaderboard ----
+    async function loadGameScores() {
+      const gameId = document.getElementById('game-selector').value;
+      const loading = document.getElementById('game-loading');
+      const tableWrap = document.getElementById('game-table-wrap');
+      const empty = document.getElementById('game-empty');
+      const tbody = document.getElementById('game-tbody');
+
+      loading.style.display = 'block';
+      tableWrap.style.display = 'none';
+      empty.style.display = 'none';
+
+      try {
+        const res = await api.get('/api/scores/' + gameId);
+        if (!res || !res.ok) throw new Error('fetch failed');
+        const data = await res.json();
+
+        loading.style.display = 'none';
+
+        if (data.length === 0) {
+          empty.style.display = 'block';
+          return;
+        }
+
+        tbody.innerHTML = '';
+        for (const entry of data) {
+          const isSelf = currentUser && entry.username === currentUser.username;
+          const tr = document.createElement('tr');
+          if (isSelf) tr.classList.add('highlight-self');
+
+          const dateStr = entry.submitted_at
+            ? new Date(entry.submitted_at).toLocaleDateString()
+            : '-';
+
+          tr.innerHTML = `
+            <td class="${rankClass(entry.rank)}">${entry.rank}</td>
+            <td>${isSelf ? entry.username + ' (YOU)' : entry.username}</td>
+            <td>${entry.score.toLocaleString()}</td>
+            <td>${dateStr}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+
+        tableWrap.style.display = 'block';
+      } catch {
+        loading.textContent = 'Failed to load scores.';
+      }
+    }
+
+    // ---- Game selector change ----
+    document.getElementById('game-selector').addEventListener('change', loadGameScores);
+
+    // ---- Auto-refresh every 30s ----
+    function startAutoRefresh() {
+      if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+      autoRefreshTimer = setInterval(() => {
+        const activeTab = document.querySelector('.tab-btn.active');
+        if (activeTab && activeTab.dataset.tab === 'overall') {
+          loadOverall();
+        } else {
+          loadGameScores();
+        }
+      }, 30000);
+    }
+
+    // ---- Init ----
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Logout handler
+      const logoutBtn = document.getElementById('nav-logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          api.logout();
+        });
+      }
+
+      currentUser = await api.getUser();
+      loadOverall();
+      loadGameScores();
+      startAutoRefresh();
+    });
+  </script>
+</body>
+</html>
