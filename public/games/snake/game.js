@@ -2,7 +2,7 @@
  * Neon Growth — Snake variant
  * - Dark canvas with glowing neon snake
  * - Fading trail: segments persist for 8 seconds; collidable for first 6 seconds
- * - 4 food types: Gold Apple, Silver Circle, Diamond, (bonus Speed Shrink)
+ * - 3 food types: Gold Apple, Silver Circle, Diamond
  * - Random wall generation every 10 segments
  * - Score submission to POST /api/scores on game over
  */
