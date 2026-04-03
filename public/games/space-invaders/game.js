@@ -796,15 +796,42 @@ class AsteroidDefenseRenderer {
       localStorage.setItem('asteroidDefenseHighScore', String(this.highScore));
     }
 
-    // Submit score
+    // Submit score with feedback
     fetch('/api/scores/space-invaders', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ score: state.score }),
-    }).catch(() => {});
+    })
+      .then(async (res) => {
+        if (res.status === 401) {
+          this._showOverlayMessage('Log in to save your score');
+        } else if (res.status === 429) {
+          this._showOverlayMessage('Score already submitted recently');
+        } else if (res.ok) {
+          const data = await res.json();
+          this._showOverlayMessage(`Saved! You ranked #${data.rank}`);
+          if (window.loadMiniLeaderboard) window.loadMiniLeaderboard();
+        } else {
+          this._showOverlayMessage('Score could not be saved');
+        }
+      })
+      .catch(() => this._showOverlayMessage('Score could not be saved'));
 
     this._showGameOver(state);
+  }
+
+  _showOverlayMessage(msg) {
+    const ov = this.overlay;
+    const existing = ov.querySelector('.overlay-status');
+    if (existing) existing.remove();
+    const p = document.createElement('p');
+    p.className = 'overlay-status';
+    p.style.fontSize = '0.85rem';
+    p.style.color = '#f0f';
+    p.style.marginTop = '4px';
+    p.textContent = msg;
+    ov.appendChild(p);
   }
 
   _showGameOver(state) {
