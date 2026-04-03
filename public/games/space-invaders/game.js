@@ -757,6 +757,107 @@ class AsteroidDefenseRenderer {
           break;
       }
     });
+
+    this._bindTouch();
+  }
+
+  _bindTouch() {
+    if (!this.canvas.addEventListener) return;
+    // Track touches by identifier for multi-touch support:
+    // - Movement touch: first finger on left/right half controls ship
+    // - Fire touch: second finger (or double-tap) fires weapon
+    // - Sustained hold fires continuously (needed for charge/laser weapons)
+    let moveTouchId = null;
+    let fireTouchId = null;
+    let tapStartTime = 0;
+    let tapStartX = 0;
+    let tapStartY = 0;
+
+    const getMidX = () => this.canvas.getBoundingClientRect().width / 2;
+
+    const updateMoveFromTouch = (touch) => {
+      const rect = this.canvas.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      if (x < getMidX()) {
+        this.engine.keys.left = true;
+        this.engine.keys.right = false;
+      } else {
+        this.engine.keys.right = true;
+        this.engine.keys.left = false;
+      }
+    };
+
+    const clearMove = () => {
+      this.engine.keys.left = false;
+      this.engine.keys.right = false;
+    };
+
+    this.canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      if (!this._running) return;
+
+      for (const touch of e.changedTouches) {
+        if (moveTouchId === null) {
+          // First finger: movement
+          moveTouchId = touch.identifier;
+          tapStartTime = performance.now();
+          tapStartX = touch.clientX;
+          tapStartY = touch.clientY;
+          updateMoveFromTouch(touch);
+        } else if (fireTouchId === null) {
+          // Second finger: fire (sustained)
+          fireTouchId = touch.identifier;
+          this.engine.keys.fire = true;
+        }
+      }
+    }, { passive: false });
+
+    this.canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (!this._running) return;
+
+      for (const touch of e.changedTouches) {
+        if (touch.identifier === moveTouchId) {
+          updateMoveFromTouch(touch);
+        }
+      }
+    }, { passive: false });
+
+    const handleTouchEnd = (e, isCanceled) => {
+      e.preventDefault();
+      // Track which touch was the move finger before we clear it
+      let endedMoveTouch = null;
+      for (const touch of e.changedTouches) {
+        if (touch.identifier === moveTouchId) {
+          endedMoveTouch = touch;
+          moveTouchId = null;
+          clearMove();
+          // If no remaining touches, also stop fire
+          if (e.touches.length === 0) {
+            fireTouchId = null;
+            this.engine.keys.fire = false;
+          }
+        } else if (touch.identifier === fireTouchId) {
+          fireTouchId = null;
+          this.engine.keys.fire = false;
+        }
+      }
+
+      // Single-finger tap: only fire if the touch was brief and didn't move far
+      // (prevents unintended shots when releasing a movement touch)
+      // Never fire on touchcancel — canceled touches are not intentional taps
+      if (!isCanceled && e.touches.length === 0 && fireTouchId === null && endedMoveTouch) {
+        const elapsed = performance.now() - tapStartTime;
+        const dist = Math.hypot(endedMoveTouch.clientX - tapStartX, endedMoveTouch.clientY - tapStartY);
+        if (elapsed < 200 && dist < 15) {
+          this.engine.keys.fire = true;
+          requestAnimationFrame(() => { this.engine.keys.fire = false; });
+        }
+      }
+    };
+
+    this.canvas.addEventListener('touchend', (e) => handleTouchEnd(e, false), { passive: false });
+    this.canvas.addEventListener('touchcancel', (e) => handleTouchEnd(e, true), { passive: false });
   }
 
   start() {
