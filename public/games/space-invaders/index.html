@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asteroid Defense Surge — Retro Arcade</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #000;
+      color: #0ff;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      user-select: none;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      letter-spacing: 0.2em;
+      text-shadow: 0 0 10px #f0f, 0 0 20px #f0f;
+      margin-bottom: 0.4rem;
+      color: #f0f;
+    }
+
+    #hud {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.9rem;
+      margin-bottom: 0.4rem;
+      text-shadow: 0 0 6px #0ff;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    #canvas-wrapper {
+      position: relative;
+    }
+
+    canvas {
+      display: block;
+      border: 2px solid #f0f;
+      box-shadow: 0 0 20px #f0f, 0 0 40px #8000ff;
+    }
+
+    #overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.82);
+      color: #f0f;
+      gap: 0.8rem;
+    }
+
+    #overlay h2 {
+      font-size: 2.2rem;
+      text-shadow: 0 0 10px #f0f;
+      letter-spacing: 0.2em;
+    }
+
+    #overlay p {
+      font-size: 0.95rem;
+      opacity: 0.85;
+      text-align: center;
+      max-width: 380px;
+      line-height: 1.6;
+    }
+
+    #overlay button {
+      background: transparent;
+      border: 2px solid #f0f;
+      color: #f0f;
+      font-family: inherit;
+      font-size: 1.1rem;
+      padding: 0.5rem 2rem;
+      cursor: pointer;
+      text-shadow: 0 0 6px #f0f;
+      box-shadow: 0 0 10px #f0f;
+      letter-spacing: 0.1em;
+    }
+
+    #overlay button:hover {
+      background: rgba(255,0,255,0.1);
+    }
+
+    #legend {
+      display: flex;
+      gap: 1.2rem;
+      font-size: 0.75rem;
+      margin-top: 0.4rem;
+      opacity: 0.75;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 0.3rem; }
+    .legend-dot {
+      width: 10px; height: 10px; border-radius: 2px;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <h1>ASTEROID DEFENSE SURGE</h1>
+  <div id="hud">
+    <span>SCORE: <span id="score">0</span></span>
+    <span>WAVE: <span id="wave">1</span></span>
+    <span>LIVES: <span id="lives">&#9733;&#9733;&#9733;</span></span>
+    <span>SHIELD: <span id="shield">100</span></span>
+    <span>WEAPON: <span id="weapon">BASIC</span></span>
+  </div>
+  <div id="canvas-wrapper">
+    <canvas id="canvas" width="700" height="520"></canvas>
+    <div id="overlay">
+      <h2>ASTEROID DEFENSE SURGE</h2>
+      <p>
+        Arrow keys / WASD — Move<br>
+        Space — Shoot (hold for Charge/Laser)<br>
+        Destroy orbiters to collect weapon upgrades
+      </p>
+      <button id="start-btn">START GAME</button>
+    </div>
+  </div>
+  <div id="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#0ff;"></div> Basic</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff0;"></div> Spread</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f80;"></div> Charge</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#0f8;"></div> Laser</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f0f;"></div> Missile</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#fff;box-shadow:0 0 4px #fff;border-radius:50%"></div> Shield+</div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
