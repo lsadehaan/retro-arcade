@@ -19,6 +19,8 @@
       flex-direction: column;
       align-items: center;
       user-select: none;
+      max-width: 100%;
+      overflow: hidden;
     }
     .game-main h1 {
       font-size: 1.5rem;
@@ -26,6 +28,9 @@
       text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
       margin-bottom: 0.5rem;
       color: #0ff;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      text-align: center;
     }
     #hud {
       display: flex;
@@ -34,12 +39,16 @@
       margin-bottom: 0.5rem;
       text-shadow: 0 0 6px #0ff;
       color: #0ff;
+      flex-wrap: wrap;
+      justify-content: center;
     }
-    #canvas-wrapper { position: relative; }
+    #canvas-wrapper { position: relative; max-width: 100%; }
     canvas {
       display: block;
       border: 2px solid #0ff;
       box-shadow: 0 0 20px #0ff, 0 0 40px #0080ff;
+      max-width: 100%;
+      height: auto;
     }
     #overlay {
       position: absolute;
@@ -57,6 +66,10 @@
       text-shadow: 0 0 10px #0ff;
       letter-spacing: 0.2em;
       font-family: var(--font-pixel);
+      word-break: break-word;
+      overflow-wrap: break-word;
+      text-align: center;
+      max-width: 90%;
     }
     #overlay p { font-size: 1.1rem; opacity: 0.85; }
     #overlay button {
@@ -78,6 +91,9 @@
       font-size: 0.8rem;
       margin-top: 0.5rem;
       opacity: 0.7;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 100%;
     }
     .legend-item { display: flex; align-items: center; gap: 0.4rem; }
     .legend-dot {
