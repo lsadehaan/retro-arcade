@@ -483,11 +483,11 @@
 
   // -- Score submission -----------------------------------------------------------
   function submitScore() {
-    fetch('/api/scores', {
+    fetch('/api/scores/pacmaze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ gameId: 'pacmaze', score }),
+      body: JSON.stringify({ score }),
     }).catch(() => {});
   }
 
