@@ -112,7 +112,7 @@ test('leaderboard.html has game selector dropdown', () => {
   const html = readFileSync(resolve(publicDir, 'leaderboard.html'), 'utf8');
   assert.ok(html.includes('id="game-selector"'), 'should have game selector');
   assert.ok(html.includes('value="pacmaze"'), 'should have pacmaze option');
-  assert.ok(html.includes('value="snake"'), 'should have snake option');
+  assert.ok(html.includes('value="neon-growth"'), 'should have neon-growth option');
   assert.ok(html.includes('value="space-invaders"'), 'should have space-invaders option');
 });
 

@@ -24,7 +24,7 @@ const api = (() => {
     const res = await fetch(path, opts);
 
     if (res.status === 401 && !path.includes('/api/auth/')) {
-      window.location.href = '/login.html';
+      window.location.href = '/auth/login.html';
       return null;
     }
 

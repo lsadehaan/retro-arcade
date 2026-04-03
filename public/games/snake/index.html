@@ -184,7 +184,7 @@
     async function loadMiniLeaderboard() {
       const list = document.getElementById('lb-list');
       try {
-        const res = await api.get('/api/scores/snake');
+        const res = await api.get('/api/scores/neon-growth');
         if (!res || !res.ok) throw new Error('fetch failed');
         const scores = await res.json();
         const user = await api.getUser();
