@@ -229,10 +229,16 @@
           const isSelf = user && s.username === user.username;
           const li = document.createElement('li');
           if (isSelf) li.style.color = 'var(--neon-gold)';
-          li.innerHTML =
-            '<span class="lb-rank">#' + s.rank + '</span>' +
-            '<span class="lb-name">' + (isSelf ? s.username + ' (YOU)' : s.username) + '</span>' +
-            '<span class="lb-score">' + s.score.toLocaleString() + '</span>';
+          const rankSpan = document.createElement('span');
+          rankSpan.className = 'lb-rank';
+          rankSpan.textContent = '#' + s.rank;
+          const nameSpan = document.createElement('span');
+          nameSpan.className = 'lb-name';
+          nameSpan.textContent = isSelf ? s.username + ' (YOU)' : s.username;
+          const scoreSpan = document.createElement('span');
+          scoreSpan.className = 'lb-score';
+          scoreSpan.textContent = s.score.toLocaleString();
+          li.append(rankSpan, nameSpan, scoreSpan);
           list.appendChild(li);
         }
       } catch {
