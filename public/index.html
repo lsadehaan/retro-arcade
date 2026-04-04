@@ -72,6 +72,14 @@
         <div class="card-top-score" id="top-frogger">TOP: ---</div>
         <a href="/games/frogger/" class="btn" style="border-color:#cc44ff;color:#cc44ff;box-shadow:0 0 8px rgba(204,68,255,0.2);">PLAY</a>
       </div>
+
+      <!-- Photon Paddle -->
+      <div class="card">
+        <h3>PHOTON PADDLE</h3>
+        <p>Pong vs CPU with increasing ball speed, difficulty modes, and rally tracking. First to 10 wins.</p>
+        <div class="card-top-score" id="top-pong">TOP: ---</div>
+        <a href="/games/pong/" class="btn" style="border-color:#ffee00;color:#ffee00;box-shadow:0 0 8px rgba(255,238,0,0.2);">PLAY</a>
+      </div>
     </div>
 
     <div style="text-align:center;margin:30px 0;">
@@ -93,6 +101,7 @@
         { id: 'neon-growth', el: 'top-snake' },
         { id: 'space-invaders', el: 'top-space-invaders' },
         { id: 'frogger', el: 'top-frogger' },
+        { id: 'pong', el: 'top-pong' },
       ];
 
       for (const game of games) {
