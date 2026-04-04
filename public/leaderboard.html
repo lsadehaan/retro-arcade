@@ -46,6 +46,7 @@
               <th>Pac-Maze</th>
               <th>Neon Growth</th>
               <th>Asteroid Def.</th>
+              <th>Neon Hopper</th>
             </tr>
           </thead>
           <tbody id="overall-tbody"></tbody>
@@ -60,6 +61,7 @@
         <option value="pacmaze">Pac-Maze Rush</option>
         <option value="neon-growth">Neon Growth</option>
         <option value="space-invaders">Asteroid Defense Surge</option>
+        <option value="frogger">Neon Hopper</option>
       </select>
       <div class="loading" id="game-loading">LOADING...</div>
       <div class="table-wrap" id="game-table-wrap" style="display:none;">
@@ -98,6 +100,7 @@
       pacmaze: 'Pac-Maze',
       'neon-growth': 'Neon Growth',
       'space-invaders': 'Asteroid Def.',
+      'frogger': 'Neon Hopper',
     };
 
     // ---- Tab switching ----
@@ -150,6 +153,7 @@
           const pacPts = entry.breakdown?.pacmaze?.points ?? 0;
           const snakePts = entry.breakdown?.['neon-growth']?.points ?? 0;
           const spacePts = entry.breakdown?.['space-invaders']?.points ?? 0;
+          const froggerPts = entry.breakdown?.['frogger']?.points ?? 0;
 
           const rankTd = document.createElement('td');
           rankTd.className = rankClass(entry.rank);
@@ -164,7 +168,9 @@
           snakeTd.textContent = snakePts;
           const spaceTd = document.createElement('td');
           spaceTd.textContent = spacePts;
-          tr.append(rankTd, nameTd, totalTd, pacTd, snakeTd, spaceTd);
+          const froggerTd = document.createElement('td');
+          froggerTd.textContent = froggerPts;
+          tr.append(rankTd, nameTd, totalTd, pacTd, snakeTd, spaceTd, froggerTd);
           tbody.appendChild(tr);
         }
 
