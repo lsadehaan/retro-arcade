@@ -282,6 +282,8 @@ a:hover {
 /* ---------- Tables ---------- */
 .table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
 }
 
 table {
@@ -315,6 +317,12 @@ tbody tr:hover {
 tbody tr.highlight-self {
   background: rgba(255,215,0,0.08);
   color: var(--neon-gold);
+}
+
+@media (max-width: 480px) {
+  table { min-width: 0; font-size: 0.7rem; }
+  thead th { padding: 6px 4px; font-size: 0.4rem; letter-spacing: 0; }
+  tbody td { padding: 6px 4px; }
 }
 
 .rank-1 { color: var(--neon-gold); font-weight: bold; }
@@ -445,7 +453,7 @@ canvas {
 
 .game-main {
   max-width: 100%;
-  overflow: hidden;
+  overflow-x: clip;
 }
 
 .game-main h1,

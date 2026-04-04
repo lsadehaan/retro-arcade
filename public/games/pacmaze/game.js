@@ -113,7 +113,7 @@
   // -- Game state -----------------------------------------------------------------
   let canvas, ctx;
   let state = 'menu'; // 'menu' | 'playing' | 'dead' | 'gameover' | 'levelcomplete'
-  let score, lives, level, mazeIndex;
+  let score = 0, lives = 3, level = 1, mazeIndex = 0;
   let map;           // current mutable map (copy of MAZES[mazeIndex])
   let totalDots;
   let player;
