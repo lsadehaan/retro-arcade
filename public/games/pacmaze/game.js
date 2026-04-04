@@ -147,7 +147,7 @@
 
   // Ghost release timer
   let releaseTimer = 0;
-  const RELEASE_INTERVAL = 3000;
+  const RELEASE_INTERVAL = 1000;
 
   // -- Canvas setup ---------------------------------------------------------------
   function setupCanvas() {
@@ -356,6 +356,9 @@
     // Tunnel wrap
     ghost.col = ((ghost.col % COLS) + COLS) % COLS;
     ghost.row = ((ghost.row % ROWS) + ROWS) % ROWS;
+    // Direct position update (ensures visual movement even without interpolation)
+    ghost.x = ghost.col * CELL + CELL / 2;
+    ghost.y = ghost.row * CELL + CELL / 2;
   }
 
   // -- Player movement ------------------------------------------------------------
