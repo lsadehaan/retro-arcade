@@ -1,7 +1,7 @@
 import { db } from '../db.js';
 import { authenticate } from '../middleware/auth.js';
 
-const VALID_GAMES = ['pacmaze', 'neon-growth', 'space-invaders', 'frogger', 'pong', 'tetris', 'breakout'];
+const VALID_GAMES = ['pacmaze', 'neon-growth', 'space-invaders', 'frogger', 'pong', 'tetris', 'breakout', 'asteroids'];
 const MAX_SCORE = 999999;
 const RATE_LIMIT_WINDOW_MS = 3 * 1000; // 3 seconds — prevents double-submit without blocking back-to-back games
 

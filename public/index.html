@@ -96,6 +96,14 @@
         <div class="card-top-score" id="top-breakout">TOP: ---</div>
         <a href="/games/breakout/" class="btn btn-pink">PLAY</a>
       </div>
+
+      <!-- Void Drifter -->
+      <div class="card">
+        <h3>VOID DRIFTER</h3>
+        <p>Asteroids with vector wireframes, screen wrapping, and UFO encounters. Drift through the void.</p>
+        <div class="card-top-score" id="top-asteroids">TOP: ---</div>
+        <a href="/games/asteroids/" class="btn" style="border-color:#33ff88;color:#33ff88;box-shadow:0 0 8px rgba(51,255,136,0.2);">PLAY</a>
+      </div>
     </div>
 
     <div style="text-align:center;margin:30px 0;">
@@ -120,6 +128,7 @@
         { id: 'pong', el: 'top-pong' },
         { id: 'tetris', el: 'top-tetris' },
         { id: 'breakout', el: 'top-breakout' },
+        { id: 'asteroids', el: 'top-asteroids' },
       ];
 
       for (const game of games) {
