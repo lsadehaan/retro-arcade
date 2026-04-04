@@ -95,8 +95,8 @@
               topEl.textContent = 'TOP: ' + scores[0].username + ' - ' + scores[0].score.toLocaleString();
             }
           }
-        } catch {
-          // Silently fail -- game card still shows "TOP: ---"
+        } catch (err) {
+          console.error('Failed to load top score for', game.id, err);
         }
       }
     }

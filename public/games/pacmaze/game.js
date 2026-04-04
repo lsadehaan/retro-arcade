@@ -502,7 +502,10 @@
           showOverlayMessage('Score could not be saved');
         }
       })
-      .catch(() => showOverlayMessage('Score could not be saved'));
+      .catch((err) => {
+        console.error('Score submission failed:', err);
+        showOverlayMessage('Score could not be saved');
+      });
   }
 
   // -- Overlay helpers ------------------------------------------------------------

@@ -226,7 +226,8 @@
           li.append(rankSpan, nameSpan, scoreSpan);
           list.appendChild(li);
         }
-      } catch {
+      } catch (err) {
+        console.error('Mini-leaderboard load failed:', err);
         list.innerHTML = '<li class="lb-empty">Failed to load</li>';
       }
     }

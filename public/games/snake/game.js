@@ -353,7 +353,10 @@ class NeonGrowth {
           this._showOverlayMessage('Score could not be saved');
         }
       })
-      .catch(() => this._showOverlayMessage('Score could not be saved'));
+      .catch((err) => {
+        console.error('Score submission failed:', err);
+        this._showOverlayMessage('Score could not be saved');
+      });
 
     this._showGameOver();
   }
