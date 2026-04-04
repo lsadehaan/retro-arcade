@@ -77,7 +77,7 @@ async function scoresRoutes(fastify) {
       FROM scores s
       JOIN users u ON u.id = s.user_id
       WHERE s.game_id = ?
-      ORDER BY s.score DESC, s.created_at ASC
+      ORDER BY s.score DESC, s.id ASC
       LIMIT 20
     `).all(game);
 
