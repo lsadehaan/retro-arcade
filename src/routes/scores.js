@@ -54,23 +54,17 @@ async function scoresRoutes(fastify) {
       'INSERT INTO scores (user_id, game_id, score) VALUES (?, ?, ?) RETURNING id'
     ).get(userId, game, score);
 
-    // Calculate current rank (best score per user, position of this user)
+    // Calculate current rank (position among all sessions for this game)
     const rankRow = db.prepare(`
-      WITH best_scores AS (
-        SELECT user_id, MAX(score) AS best
-        FROM scores
-        WHERE game_id = ?
-        GROUP BY user_id
-      )
       SELECT COUNT(*) + 1 AS rank
-      FROM best_scores
-      WHERE best > (SELECT MAX(score) FROM scores WHERE user_id = ? AND game_id = ?)
-    `).get(game, userId, game);
+      FROM scores
+      WHERE game_id = ? AND score > ?
+    `).get(game, score);
 
     return reply.code(201).send({ id: row.id, rank: rankRow.rank });
   });
 
-  // GET /api/scores/:game -- top 10 per game (best score per user)
+  // GET /api/scores/:game -- top 20 individual sessions (classic arcade style)
   fastify.get('/:game', async (request, reply) => {
     const { game } = request.params;
 
@@ -79,16 +73,12 @@ async function scoresRoutes(fastify) {
     }
 
     const rows = db.prepare(`
-      SELECT u.username, bs.best AS score, bs.submitted_at
-      FROM (
-        SELECT user_id, MAX(score) AS best, MAX(created_at) AS submitted_at
-        FROM scores
-        WHERE game_id = ?
-        GROUP BY user_id
-      ) bs
-      JOIN users u ON u.id = bs.user_id
-      ORDER BY bs.best DESC
-      LIMIT 10
+      SELECT u.username, s.score, s.created_at AS submitted_at
+      FROM scores s
+      JOIN users u ON u.id = s.user_id
+      WHERE s.game_id = ?
+      ORDER BY s.score DESC, s.created_at ASC
+      LIMIT 20
     `).all(game);
 
     const scores = rows.map((row, i) => ({
@@ -122,15 +112,9 @@ async function scoresRoutes(fastify) {
     }
 
     const rankRow = db.prepare(`
-      WITH best_scores AS (
-        SELECT user_id, MAX(score) AS best
-        FROM scores
-        WHERE game_id = ?
-        GROUP BY user_id
-      )
       SELECT COUNT(*) + 1 AS rank
-      FROM best_scores
-      WHERE best > ?
+      FROM scores
+      WHERE game_id = ? AND score > ?
     `).get(game, bestRow.score);
 
     return reply.send({
