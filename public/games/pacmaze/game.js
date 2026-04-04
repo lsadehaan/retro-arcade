@@ -206,6 +206,9 @@
       row: PLAYER_START.row,
       x: PLAYER_START.col * CELL + CELL / 2,
       y: PLAYER_START.row * CELL + CELL / 2,
+      prevX: PLAYER_START.col * CELL + CELL / 2,
+      prevY: PLAYER_START.row * CELL + CELL / 2,
+      moveStart: 0,
       alive: true,
     };
     playerDir = { dc: 0, dr: 0 };
@@ -216,6 +219,9 @@
       row: g.row,
       x: g.col * CELL + CELL / 2,
       y: g.row * CELL + CELL / 2,
+      prevX: g.col * CELL + CELL / 2,
+      prevY: g.row * CELL + CELL / 2,
+      moveStart: 0,
       color: g.color,
       name: g.name,
       type: g.type,
@@ -261,8 +267,11 @@
         // Return ghost to house
         ghost.col = GHOST_START[ghost.releaseIndex].col;
         ghost.row = GHOST_START[ghost.releaseIndex].row;
-        ghost.x = ghost.col * CELL + CELL / 2;
-        ghost.y = ghost.row * CELL + CELL / 2;
+        ghost.prevX = ghost.col * CELL + CELL / 2;
+        ghost.prevY = ghost.row * CELL + CELL / 2;
+        ghost.x = ghost.prevX;
+        ghost.y = ghost.prevY;
+        ghost.moveStart = 0;
         ghost.dead = false;
       }
       return;
@@ -272,7 +281,9 @@
     const frozen  = now < frozenUntil;
     if (frozen) return;
 
-    const valid = getValidDirs(ghost.col, ghost.row, false);
+    // Allow ghosts in the ghost house to move through house tiles to escape
+    const inHouse = isGhostHouse(ghost.col, ghost.row);
+    const valid = getValidDirs(ghost.col, ghost.row, inHouse);
     if (valid.length === 0) return;
 
     // Avoid reversing unless only option
@@ -281,7 +292,11 @@
 
     let chosen;
 
-    if (scared) {
+    if (inHouse) {
+      // Exiting ghost house: prioritize moving up to escape
+      const upDir = candidates.find(d => d.dr === -1 && d.dc === 0);
+      chosen = upDir || candidates[0];
+    } else if (scared) {
       // Flee from player
       chosen = candidates.reduce((best, d) => {
         const nc = ghost.col + d.dc, nr = ghost.row + d.dr;
@@ -333,26 +348,28 @@
     }
 
     ghost.dir = chosen;
+    ghost.prevX = ghost.col * CELL + CELL / 2;
+    ghost.prevY = ghost.row * CELL + CELL / 2;
+    ghost.moveStart = now;
     ghost.col += chosen.dc;
     ghost.row += chosen.dr;
     // Tunnel wrap
     ghost.col = ((ghost.col % COLS) + COLS) % COLS;
     ghost.row = ((ghost.row % ROWS) + ROWS) % ROWS;
-    ghost.x = ghost.col * CELL + CELL / 2;
-    ghost.y = ghost.row * CELL + CELL / 2;
   }
 
   // -- Player movement ------------------------------------------------------------
-  function tryMove(dc, dr) {
+  function tryMove(dc, dr, now) {
     const nc = ((player.col + dc + COLS) % COLS);
     const nr = ((player.row + dr + ROWS) % ROWS);
     if (isWall(nc, nr)) return false;
     if (isGhostHouse(nc, nr)) return false;
 
+    player.prevX = player.col * CELL + CELL / 2;
+    player.prevY = player.row * CELL + CELL / 2;
+    player.moveStart = now;
     player.col = nc;
     player.row = nr;
-    player.x = nc * CELL + CELL / 2;
-    player.y = nr * CELL + CELL / 2;
     playerDir = { dc, dr };
 
     // Record history for Mimic
@@ -423,8 +440,11 @@
         const dest = candidates[Math.floor(Math.random() * candidates.length)];
         player.col = dest.col;
         player.row = dest.row;
-        player.x = dest.col * CELL + CELL / 2;
-        player.y = dest.row * CELL + CELL / 2;
+        player.prevX = dest.col * CELL + CELL / 2;
+        player.prevY = dest.row * CELL + CELL / 2;
+        player.x = player.prevX;
+        player.y = player.prevY;
+        player.moveStart = 0;
       }
     }
   }
@@ -460,15 +480,21 @@
       // Reset positions
       player.col = PLAYER_START.col;
       player.row = PLAYER_START.row;
-      player.x = player.col * CELL + CELL / 2;
-      player.y = player.row * CELL + CELL / 2;
+      player.prevX = player.col * CELL + CELL / 2;
+      player.prevY = player.row * CELL + CELL / 2;
+      player.x = player.prevX;
+      player.y = player.prevY;
+      player.moveStart = 0;
       playerDir = { dc: 0, dr: 0 };
       inputDir = null;
       ghosts.forEach((g, i) => {
         g.col = GHOST_START[i].col;
         g.row = GHOST_START[i].row;
-        g.x = g.col * CELL + CELL / 2;
-        g.y = g.row * CELL + CELL / 2;
+        g.prevX = g.col * CELL + CELL / 2;
+        g.prevY = g.row * CELL + CELL / 2;
+        g.x = g.prevX;
+        g.y = g.prevY;
+        g.moveStart = 0;
         g.dead = false;
         g.released = i === 0;
         g.dir = { dc: 0, dr: 0 };
@@ -553,6 +579,27 @@
     document.getElementById('score-display').textContent = score;
     document.getElementById('lives-display').textContent = lives;
     document.getElementById('level-display').textContent = level;
+  }
+
+  // -- Smooth interpolation -------------------------------------------------------
+  function interpolate(entity, speedMs, now) {
+    const targetX = entity.col * CELL + CELL / 2;
+    const targetY = entity.row * CELL + CELL / 2;
+    if (!entity.moveStart) {
+      entity.x = targetX;
+      entity.y = targetY;
+      return;
+    }
+    // Snap on tunnel wrap (distance > 1 cell means wrap-around)
+    if (Math.abs(targetX - entity.prevX) > CELL * 1.5 ||
+        Math.abs(targetY - entity.prevY) > CELL * 1.5) {
+      entity.x = targetX;
+      entity.y = targetY;
+      return;
+    }
+    const t = Math.max(0, Math.min((now - entity.moveStart) / speedMs, 1));
+    entity.x = entity.prevX + (targetX - entity.prevX) * t;
+    entity.y = entity.prevY + (targetY - entity.prevY) * t;
   }
 
   // -- Drawing --------------------------------------------------------------------
@@ -751,14 +798,14 @@
       // Try buffered input first, then continue current direction
       let moved = false;
       if (inputDir) {
-        moved = tryMove(inputDir.dc, inputDir.dr);
+        moved = tryMove(inputDir.dc, inputDir.dr, now);
         if (moved) {
           playerDir = inputDir;
           inputDir = null;
         }
       }
       if (!moved && (playerDir.dc !== 0 || playerDir.dr !== 0)) {
-        tryMove(playerDir.dc, playerDir.dr);
+        tryMove(playerDir.dc, playerDir.dr, now);
       }
       lastPlayerMove = now;
     }
@@ -770,10 +817,13 @@
       const next = ghosts.find(g => !g.released);
       if (next) {
         next.released = true;
-        // Move out of house
+        // Move toward house exit
         next.col = 10; next.row = 8;
-        next.x = next.col * CELL + CELL / 2;
-        next.y = next.row * CELL + CELL / 2;
+        next.prevX = next.col * CELL + CELL / 2;
+        next.prevY = next.row * CELL + CELL / 2;
+        next.x = next.prevX;
+        next.y = next.prevY;
+        next.moveStart = 0;
       }
     }
 
@@ -820,6 +870,10 @@
         }
       );
     }
+
+    // Smooth interpolation for rendering
+    interpolate(player, PLAYER_SPEED_MS, now);
+    ghosts.forEach(g => { if (g.released && !g.dead) interpolate(g, GHOST_SPEED_MS, now); });
 
     updateHUD();
     draw(now);
