@@ -11,6 +11,14 @@
     <a href="/" class="navbar-brand">RETRO ARCADE</a>
     <div class="navbar-links">
       <a href="/leaderboard.html">Leaderboard</a>
+      <span id="nav-auth-links" style="display:flex;gap:20px;">
+        <a href="/auth/login.html">Login</a>
+        <a href="/auth/register.html">Register</a>
+      </span>
+      <span id="nav-user-info" style="display:none;align-items:center;gap:12px;">
+        <span class="navbar-user" id="nav-username"></span>
+        <a href="#" id="nav-logout-btn">Logout</a>
+      </span>
     </div>
   </nav>
 
@@ -24,5 +32,18 @@
   <footer class="footer">
     RETRO ARCADE &copy; 2026 &mdash; Insert Coin to Continue
   </footer>
+
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const logoutBtn = document.getElementById('nav-logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          api.logout();
+        });
+      }
+    });
+  </script>
 </body>
 </html>
