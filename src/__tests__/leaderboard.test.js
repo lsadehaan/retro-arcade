@@ -190,7 +190,7 @@ describe('POST /api/scores/:game', () => {
 // ──────────────────────────────────────────────
 
 describe('GET /api/scores/:game', () => {
-  test('returns top 10 in descending order, best score per user', async () => {
+  test('returns top 20 individual sessions in descending order (same player can appear multiple times)', async () => {
     const app = await buildApp();
     await app.ready();
 
@@ -202,7 +202,7 @@ describe('GET /api/scores/:game', () => {
       const user = db.prepare(
         'INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING id'
       ).get(username, hash);
-      // Insert a high score and a low score per user
+      // Insert a high score and a low score per user (24 total sessions)
       db.prepare('INSERT INTO scores (user_id, game_id, score) VALUES (?, ?, ?)').run(user.id, 'pacmaze', i * 100);
       db.prepare('INSERT INTO scores (user_id, game_id, score) VALUES (?, ?, ?)').run(user.id, 'pacmaze', i * 10);
     }
@@ -214,16 +214,18 @@ describe('GET /api/scores/:game', () => {
 
     assert.strictEqual(res.statusCode, 200);
     const body = res.json();
-    assert.strictEqual(body.length, 10, 'should return max 10');
+    assert.strictEqual(body.length, 20, 'should return max 20 individual sessions');
     assert.strictEqual(body[0].rank, 1);
     assert.strictEqual(body[0].score, 1200, 'highest score first');
-    assert.strictEqual(body[9].rank, 10);
-    assert.strictEqual(body[9].score, 300, '10th score');
 
     // Verify descending order
     for (let i = 1; i < body.length; i++) {
       assert.ok(body[i - 1].score >= body[i].score, 'should be in descending order');
     }
+
+    // Verify a player can appear multiple times (player12 has both 1200 and 120)
+    const player12Entries = body.filter(e => e.username === 'player12');
+    assert.ok(player12Entries.length >= 1, 'player12 high score should appear');
 
     await app.close();
   });

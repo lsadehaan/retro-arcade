@@ -522,14 +522,14 @@ describe('Score API for pacmaze', () => {
     await app.close();
   });
 
-  test('GET /api/scores/pacmaze returns max 10 scores', async () => {
+  test('GET /api/scores/pacmaze returns max 20 scores', async () => {
     const app = await buildApp();
     await app.ready();
 
     const { db } = await import('../db.js');
 
-    // Insert 15 scores
-    for (let i = 0; i < 15; i++) {
+    // Insert 25 scores
+    for (let i = 0; i < 25; i++) {
       const uname = `limit${Date.now()}${i}`;
       const result = db
         .prepare('INSERT INTO users (username, password_hash) VALUES (?, ?)')
@@ -545,7 +545,7 @@ describe('Score API for pacmaze', () => {
     });
     assert.strictEqual(res.statusCode, 200);
     const body = JSON.parse(res.payload);
-    assert.ok(body.length <= 10, 'should return at most 10 scores');
+    assert.ok(body.length <= 20, 'should return at most 20 scores');
 
     await app.close();
   });
