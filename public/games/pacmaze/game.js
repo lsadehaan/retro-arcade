@@ -509,15 +509,23 @@
   function showOverlay(title, msg, btnText, btnAction) {
     const overlay = document.getElementById('overlay');
     overlay.style.display = 'flex';
-    overlay.innerHTML = `
-      <h2>${title}</h2>
-      <p>${msg}</p>
-      <button id="overlay-btn">${btnText}</button>
-    `;
-    document.getElementById('overlay-btn').addEventListener('click', () => {
+    overlay.innerHTML = '';
+
+    const h2 = document.createElement('h2');
+    h2.textContent = title;
+
+    const p = document.createElement('p');
+    p.textContent = msg;
+
+    const btn = document.createElement('button');
+    btn.id = 'overlay-btn';
+    btn.textContent = btnText;
+    btn.addEventListener('click', () => {
       overlay.style.display = 'none';
       btnAction();
     });
+
+    overlay.append(h2, p, btn);
   }
 
   function showOverlayMessage(msg) {
