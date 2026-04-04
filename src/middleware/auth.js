@@ -10,7 +10,8 @@ export async function authenticate(request, reply) {
       return reply.code(401).send({ ok: false, error: 'Unauthorized' });
     }
     request.user = await request.jwtVerify({ onlyCookie: true });
-  } catch {
+  } catch (err) {
+    request.log.warn({ errCode: err.code, errMessage: err.message }, 'JWT verification failed');
     return reply.code(401).send({ ok: false, error: 'Unauthorized' });
   }
 }

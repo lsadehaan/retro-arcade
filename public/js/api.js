@@ -49,7 +49,8 @@ const api = (() => {
       } else {
         _user = null;
       }
-    } catch {
+    } catch (err) {
+      console.warn('getUser network error:', err);
       _user = null;
     }
     _checked = true;

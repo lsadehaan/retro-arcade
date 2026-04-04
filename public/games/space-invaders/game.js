@@ -720,7 +720,8 @@ class AsteroidDefenseRenderer {
     this._lastTime = 0;
     this._running = false;
 
-    this.highScore = parseInt(localStorage.getItem('asteroidDefenseHighScore') ?? '0', 10);
+    const raw = parseInt(localStorage.getItem('asteroidDefenseHighScore') ?? '0', 10);
+    this.highScore = Number.isFinite(raw) ? raw : 0;
 
     this._bindKeys();
   }
@@ -917,7 +918,10 @@ class AsteroidDefenseRenderer {
           this._showOverlayMessage('Score could not be saved');
         }
       })
-      .catch(() => this._showOverlayMessage('Score could not be saved'));
+      .catch((err) => {
+        console.error('Score submission failed:', err);
+        this._showOverlayMessage('Score could not be saved');
+      });
 
     this._showGameOver(state);
   }
