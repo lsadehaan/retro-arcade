@@ -80,6 +80,14 @@
         <div class="card-top-score" id="top-pong">TOP: ---</div>
         <a href="/games/pong/" class="btn" style="border-color:#ffee00;color:#ffee00;box-shadow:0 0 8px rgba(255,238,0,0.2);">PLAY</a>
       </div>
+
+      <!-- Neon Stack -->
+      <div class="card">
+        <h3>NEON STACK</h3>
+        <p>Tetris with neon blocks, ghost pieces, hold queue, and increasing speed. Stack or be stacked.</p>
+        <div class="card-top-score" id="top-tetris">TOP: ---</div>
+        <a href="/games/tetris/" class="btn" style="border-color:#ff8800;color:#ff8800;box-shadow:0 0 8px rgba(255,136,0,0.2);">PLAY</a>
+      </div>
     </div>
 
     <div style="text-align:center;margin:30px 0;">
@@ -102,6 +110,7 @@
         { id: 'space-invaders', el: 'top-space-invaders' },
         { id: 'frogger', el: 'top-frogger' },
         { id: 'pong', el: 'top-pong' },
+        { id: 'tetris', el: 'top-tetris' },
       ];
 
       for (const game of games) {
