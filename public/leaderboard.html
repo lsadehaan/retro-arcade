@@ -50,6 +50,7 @@
               <th>Photon Paddle</th>
               <th>Neon Stack</th>
               <th>Brick Blitz</th>
+              <th>Void Drifter</th>
             </tr>
           </thead>
           <tbody id="overall-tbody"></tbody>
@@ -68,6 +69,7 @@
         <option value="pong">Photon Paddle</option>
         <option value="tetris">Neon Stack</option>
         <option value="breakout">Brick Blitz</option>
+        <option value="asteroids">Void Drifter</option>
       </select>
       <div class="loading" id="game-loading">LOADING...</div>
       <div class="table-wrap" id="game-table-wrap" style="display:none;">
@@ -110,6 +112,7 @@
       'pong': 'Photon Paddle',
       'tetris': 'Neon Stack',
       'breakout': 'Brick Blitz',
+      'asteroids': 'Void Drifter',
     };
 
     // ---- Tab switching ----
@@ -166,6 +169,7 @@
           const pongPts = entry.breakdown?.pong?.points ?? 0;
           const tetrisPts = entry.breakdown?.['tetris']?.points ?? 0;
           const breakoutPts = entry.breakdown?.breakout?.points ?? 0;
+          const asteroidsPts = entry.breakdown?.['asteroids']?.points ?? 0;
 
           const rankTd = document.createElement('td');
           rankTd.className = rankClass(entry.rank);
@@ -188,7 +192,9 @@
           tetrisTd.textContent = tetrisPts;
           const breakoutTd = document.createElement('td');
           breakoutTd.textContent = breakoutPts;
-          tr.append(rankTd, nameTd, totalTd, pacTd, snakeTd, spaceTd, froggerTd, pongTd, tetrisTd, breakoutTd);
+          const asteroidsTd = document.createElement('td');
+          asteroidsTd.textContent = asteroidsPts;
+          tr.append(rankTd, nameTd, totalTd, pacTd, snakeTd, spaceTd, froggerTd, pongTd, tetrisTd, breakoutTd, asteroidsTd);
           tbody.appendChild(tr);
         }
 
