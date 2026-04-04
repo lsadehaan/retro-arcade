@@ -17,6 +17,7 @@
   const SCORE_PER_DOT = 10;
   const SCORE_PER_POWER = 50;
   const GHOST_EAT_BASE = 200;
+  const COLLISION_DIST = CELL * 0.6; // circle collision — ~60% of cell, forgiving like original Pac-Man
 
   // -- Maze layouts (3 layouts, 21x21) ------------------------------------------
   // 0=empty(no dot), 1=wall, 2=dot, 3=power-pellet, 4=ghost-house
@@ -452,12 +453,14 @@
     }
   }
 
-  // -- Collision ------------------------------------------------------------------
+  // -- Collision (circle-based on interpolated pixel positions) ------------------
   function checkCollisions(now) {
     for (const ghost of ghosts) {
       if (ghost.dead) continue;
       if (!ghost.released) continue;
-      if (ghost.col === player.col && ghost.row === player.row) {
+      const dx = ghost.x - player.x;
+      const dy = ghost.y - player.y;
+      if (Math.sqrt(dx * dx + dy * dy) < COLLISION_DIST) {
         if (now < scaredUntil) {
           // Eat ghost (200/400/800/1600 cascade)
           const pts = GHOST_EAT_BASE * Math.pow(2, ghostEatChain) * scoreMultiplier;
@@ -851,7 +854,11 @@
       lastItemSpawn = now;
     }
 
-    // Collisions
+    // Smooth interpolation (must happen before collision check for accurate pixel positions)
+    interpolate(player, PLAYER_SPEED_MS, now);
+    ghosts.forEach(g => { if (g.released && !g.dead) interpolate(g, GHOST_SPEED_MS, now); });
+
+    // Collisions (circle-based on interpolated pixel positions)
     checkCollisions(now);
     if (state !== 'playing') {
       updateHUD();
@@ -873,10 +880,6 @@
         }
       );
     }
-
-    // Smooth interpolation for rendering
-    interpolate(player, PLAYER_SPEED_MS, now);
-    ghosts.forEach(g => { if (g.released && !g.dead) interpolate(g, GHOST_SPEED_MS, now); });
 
     updateHUD();
     draw(now);
