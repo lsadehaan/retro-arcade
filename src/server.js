@@ -37,6 +37,8 @@ await app.register(fastifyCors, {
 await app.register(fastifyStatic, {
   root: path.join(__dirname, '..', 'public'),
   prefix: '/',
+  maxAge: 0,
+  cacheControl: true,
 });
 
 // Routes
