@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="4" fill="#0a0a0f"/>
+  <!-- Joystick base -->
+  <rect x="8" y="22" width="16" height="4" rx="1" fill="#1a1a2e" stroke="#00ffff" stroke-width="0.75"/>
+  <!-- Joystick stick -->
+  <rect x="14" y="10" width="4" height="14" rx="1" fill="#1a1a2e" stroke="#00ffff" stroke-width="0.75"/>
+  <!-- Joystick knob -->
+  <circle cx="16" cy="9" r="5" fill="#0a0a0f" stroke="#ff00ff" stroke-width="1.5"/>
+  <circle cx="16" cy="9" r="2.5" fill="#ff00ff" opacity="0.6"/>
+  <!-- Neon glow dots -->
+  <circle cx="5" cy="5" r="1.5" fill="#00ffff" opacity="0.8"/>
+  <circle cx="27" cy="5" r="1.5" fill="#ff00ff" opacity="0.8"/>
+  <circle cx="5" cy="27" r="1.5" fill="#ff00ff" opacity="0.8"/>
+  <circle cx="27" cy="27" r="1.5" fill="#00ffff" opacity="0.8"/>
+</svg>
