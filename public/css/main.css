@@ -320,9 +320,23 @@ tbody tr.highlight-self {
 }
 
 @media (max-width: 480px) {
-  table { min-width: 0; font-size: 0.7rem; }
-  thead th { padding: 6px 4px; font-size: 0.4rem; letter-spacing: 0; }
-  tbody td { padding: 6px 4px; }
+  .container { padding: 0 12px; }
+  table { min-width: 0; font-size: 0.65rem; table-layout: fixed; width: 100%; }
+  thead th { padding: 6px 3px; font-size: 0.35rem; letter-spacing: 0; white-space: normal; }
+  tbody td { padding: 6px 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tab-btn { padding: 8px 10px; font-size: 0.45rem; }
+
+  /* Overall tab: hide per-game breakdown columns (4-6) on mobile.
+     Total Pts remains visible; per-game detail lives in the Per Game tab. */
+  #tab-overall th:nth-child(n+4),
+  #tab-overall td:nth-child(n+4) { display: none; }
+
+  /* Per Game tab: size columns for 375px viewport */
+  #tab-per-game table { table-layout: fixed; }
+  #tab-per-game col:nth-child(1) { width: 38px; }
+  #tab-per-game col:nth-child(2) { width: auto; }
+  #tab-per-game col:nth-child(3) { width: 64px; }
+  #tab-per-game col:nth-child(4) { width: 72px; }
 }
 
 .rank-1 { color: var(--neon-gold); font-weight: bold; }
