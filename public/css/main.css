@@ -506,15 +506,15 @@ canvas {
 
 .dpad {
   display: grid;
-  grid-template-columns: 56px 56px 56px;
-  grid-template-rows: 56px 56px 56px;
+  grid-template-columns: 72px 72px 72px;
+  grid-template-rows: 72px 72px 72px;
   gap: 4px;
   justify-content: center;
 }
 
 .dpad-btn {
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   border: 2px solid var(--neon-cyan);
   background: rgba(0, 255, 255, 0.08);
   color: var(--neon-cyan);

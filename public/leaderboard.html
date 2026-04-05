@@ -245,6 +245,14 @@
           nameTd.textContent = isSelf ? entry.username + ' (YOU)' : entry.username;
           const scoreTd = document.createElement('td');
           scoreTd.textContent = entry.score.toLocaleString();
+          // Show difficulty tag if present and not normal
+          if (entry.difficulty && entry.difficulty !== 'normal') {
+            const diffTag = document.createElement('span');
+            diffTag.style.cssText = 'font-size:0.6rem;margin-left:6px;text-transform:uppercase;';
+            diffTag.style.color = entry.difficulty === 'easy' ? '#39ff14' : '#ff3333';
+            diffTag.textContent = '[' + entry.difficulty.toUpperCase() + ']';
+            scoreTd.appendChild(diffTag);
+          }
           const dateTd = document.createElement('td');
           dateTd.textContent = dateStr;
           tr.append(rankTd, nameTd, scoreTd, dateTd);
