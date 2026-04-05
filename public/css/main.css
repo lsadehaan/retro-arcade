@@ -600,3 +600,106 @@ canvas {
 
   .touch-controls { display: block; }
 }
+
+/* ---------- Kids Theme ---------- */
+[data-theme="kids"] {
+  --bg:        #e8f4f8;
+  --surface:   #f0f7fa;
+  --border:    #c8dde5;
+  --text:      #3a4a52;
+  --heading:   #2a3a42;
+  --neon-cyan: #2ea8c8;
+  --neon-pink: #e06090;
+  --neon-green:#40b860;
+  --neon-gold: #d4a020;
+  --neon-blue: #4070d0;
+}
+
+[data-theme="kids"] body::after { display: none; }
+
+[data-theme="kids"] .navbar {
+  background: rgba(232, 244, 248, 0.95);
+}
+
+[data-theme="kids"] .hero h1 {
+  text-shadow: 0 0 8px rgba(46, 168, 200, 0.3);
+}
+
+[data-theme="kids"] .card:hover {
+  box-shadow: 0 0 12px rgba(46, 168, 200, 0.12);
+}
+
+[data-theme="kids"] .btn {
+  box-shadow: 0 0 4px rgba(46, 168, 200, 0.15);
+}
+
+[data-theme="kids"] .btn:hover {
+  box-shadow: 0 0 8px rgba(46, 168, 200, 0.25);
+}
+
+[data-theme="kids"] .dpad-btn {
+  background: rgba(46, 168, 200, 0.1);
+}
+
+[data-theme="kids"] .touch-btn-fire {
+  background: rgba(224, 96, 144, 0.1);
+}
+
+/* ---------- Settings Toggle Bar ---------- */
+.settings-bar {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.settings-btn {
+  font-family: var(--font-pixel);
+  font-size: 0.4rem;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: all 0.15s;
+  border-radius: 3px;
+}
+
+.settings-btn:hover {
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+}
+
+.settings-btn.active {
+  border-color: var(--neon-green);
+  color: var(--neon-green);
+  box-shadow: 0 0 6px rgba(57, 255, 20, 0.2);
+}
+
+/* ---------- Auto-fire button ---------- */
+.touch-btn-autofire {
+  width: 56px;
+  height: 56px;
+  border: 2px solid var(--neon-gold);
+  background: rgba(255, 215, 0, 0.08);
+  color: var(--neon-gold);
+  font-family: var(--font-pixel);
+  font-size: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, box-shadow 0.15s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.touch-btn-autofire.active {
+  background: rgba(255, 215, 0, 0.25);
+  box-shadow: 0 0 12px var(--neon-gold);
+  color: #fff;
+}

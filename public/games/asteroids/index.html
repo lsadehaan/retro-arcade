@@ -201,6 +201,10 @@
       </span>
     </div>
   </nav>
+  <div class="settings-bar">
+    <button class="settings-btn" id="sound-toggle">SFX: ON</button>
+    <button class="settings-btn" id="theme-toggle">THEME: NEON</button>
+  </div>
 
   <div class="game-layout">
     <div class="game-main">
@@ -233,6 +237,7 @@
           <button class="dpad-btn" data-key="ArrowLeft" style="width:72px;height:72px;font-size:1.8rem;">&#9664;</button>
           <button class="dpad-btn" data-key="ArrowUp" style="width:72px;height:72px;font-size:1.8rem;">&#9650;</button>
           <button class="touch-btn-fire" id="fire-btn">FIRE</button>
+          <button class="touch-btn-autofire" id="autofire-btn">AUTO</button>
           <button class="dpad-btn" data-key="ArrowRight" style="width:72px;height:72px;font-size:1.8rem;">&#9654;</button>
         </div>
         <div class="touch-hint">ROTATE &bull; THRUST &bull; FIRE</div>
@@ -247,6 +252,8 @@
     </div>
   </div>
 
+  <script src="/js/sfx.js"></script>
+  <script src="/js/theme.js"></script>
   <script src="/js/api.js"></script>
   <script>
     // Touch controls — movement buttons
@@ -339,6 +346,27 @@
         });
       }
       loadMiniLeaderboard();
+
+      const soundBtn = document.getElementById('sound-toggle');
+      const themeBtn = document.getElementById('theme-toggle');
+      if (soundBtn) {
+        soundBtn.textContent = 'SFX: ' + (sfx.enabled ? 'ON' : 'OFF');
+        soundBtn.classList.toggle('active', sfx.enabled);
+        soundBtn.addEventListener('click', () => {
+          const on = sfx.toggle();
+          soundBtn.textContent = 'SFX: ' + (on ? 'ON' : 'OFF');
+          soundBtn.classList.toggle('active', on);
+        });
+      }
+      if (themeBtn) {
+        themeBtn.textContent = 'THEME: ' + (arcadeTheme.current === 'kids' ? 'KIDS' : 'NEON');
+        themeBtn.classList.toggle('active', arcadeTheme.isKids);
+        themeBtn.addEventListener('click', () => {
+          const t = arcadeTheme.toggle();
+          themeBtn.textContent = 'THEME: ' + (t === 'kids' ? 'KIDS' : 'NEON');
+          themeBtn.classList.toggle('active', arcadeTheme.isKids);
+        });
+      }
     });
   </script>
   <script src="game.js"></script>

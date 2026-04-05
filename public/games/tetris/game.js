@@ -347,12 +347,18 @@
     const cleared = clearLines();
     if (cleared > 0 && typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(cleared > 1 ? 80 : 40);
     if (cleared > 0) {
+      if (cleared >= 4) {
+        sfx.play('powerup');
+      } else {
+        sfx.play('score');
+      }
       score += LINE_SCORES[cleared] * level;
       lines += cleared;
       const newLevel = Math.floor(lines / 10) + 1;
       if (newLevel > level) {
         level = newLevel;
         dropInterval = Math.max(activeDiff.minDropInterval, activeDiff.baseDropInterval - (level - 1) * activeDiff.levelSpeedDecrease);
+        sfx.play('levelup');
       }
     }
     updateHud();
@@ -570,6 +576,7 @@
   // ── Game over ─────────────────────────────────────────────────────────────
   async function endGame() {
     if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(150);
+    sfx.play('gameover');
     gameOver = true;
     running = false;
 
@@ -635,6 +642,7 @@
     const diffSelector = document.getElementById('difficulty-selector');
     if (diffSelector) diffSelector.style.display = 'none';
     running = true;
+    sfx.play('start');
     requestAnimationFrame(gameLoop);
   }
 

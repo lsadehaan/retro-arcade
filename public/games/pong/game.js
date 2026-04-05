@@ -138,6 +138,7 @@ function startGame() {
   overlay.style.display = 'none';
   gameOverOverlay.style.display = 'none';
   running = true;
+  sfx.play('start');
   lastTime = performance.now();
   requestAnimationFrame(gameLoop);
 }
@@ -237,6 +238,8 @@ function checkScore() {
   // Ball went past left wall -> CPU scores
   if (ballX - BALL_RADIUS < 0) {
     cpuScore++;
+    sfx.play('damage');
+    sfx.play('score');
     updateHUD();
     if (cpuScore >= WIN_SCORE) {
       endMatch(false);
@@ -249,6 +252,7 @@ function checkScore() {
   // Ball went past right wall -> Player scores
   if (ballX + BALL_RADIUS > CANVAS_W) {
     playerScore++;
+    sfx.play('score');
     updateHUD();
     if (playerScore >= WIN_SCORE) {
       endMatch(true);
@@ -262,6 +266,10 @@ function checkScore() {
 async function endMatch(playerWon) {
   if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(150);
   running = false;
+  if (playerWon) {
+    sfx.play('levelup');
+  }
+  sfx.play('gameover');
   gameOverTitle.textContent = playerWon ? 'YOU WIN!' : 'YOU LOSE';
   gameOverTitle.style.color = playerWon ? '#0f0' : '#f44';
   gameOverInfo.textContent = `Final: ${playerScore} - ${cpuScore} | Total rallies: ${totalRallies}`;

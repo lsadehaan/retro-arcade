@@ -208,12 +208,14 @@ function startGame() {
   initLevel();
   overlay.style.display = 'none';
   updateHUD();
+  sfx.play('start');
   lastTimestamp = performance.now();
   requestAnimationFrame(gameLoop);
 }
 
 function showGameOver() {
   gameState = 'gameover';
+  sfx.play('gameover');
   overlay.querySelector('h2').textContent = 'GAME OVER';
   const diffLabel = activeDiff.label;
   overlay.querySelector('p').innerHTML =
@@ -230,6 +232,7 @@ function showGameOver() {
 
 function die() {
   lives--;
+  sfx.play('damage');
   hapticPulse(150); // longer vibration on death
   updateHUD();
   if (lives <= 0) {
@@ -386,11 +389,14 @@ function checkCollisions() {
 
         // Check if all slots filled
         if (safeSlots.every(Boolean)) {
+          sfx.play('levelup');
           level++;
           initLevel();
           updateHUD();
           return;
         }
+
+        sfx.play('score');
 
         // Reset for next crossing
         resetFrog();

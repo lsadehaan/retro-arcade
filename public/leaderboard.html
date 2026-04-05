@@ -23,6 +23,10 @@
       </span>
     </div>
   </nav>
+  <div class="settings-bar">
+    <button class="settings-btn" id="sound-toggle">SFX: ON</button>
+    <button class="settings-btn" id="theme-toggle">THEME: NEON</button>
+  </div>
 
   <div class="container" style="padding-top:30px;">
     <h1 class="section-title" style="margin-top:0;">Leaderboard</h1>
@@ -99,6 +103,8 @@
     RETRO ARCADE &copy; 2026 &mdash; Insert Coin to Continue
   </footer>
 
+  <script src="/js/sfx.js"></script>
+  <script src="/js/theme.js"></script>
   <script src="/js/api.js"></script>
   <script>
     let currentUser = null;
@@ -296,6 +302,28 @@
       loadOverall();
       loadGameScores();
       startAutoRefresh();
+
+      // Settings toggles
+      const soundBtn = document.getElementById('sound-toggle');
+      const themeBtn = document.getElementById('theme-toggle');
+      if (soundBtn) {
+        soundBtn.textContent = 'SFX: ' + (sfx.enabled ? 'ON' : 'OFF');
+        soundBtn.classList.toggle('active', sfx.enabled);
+        soundBtn.addEventListener('click', () => {
+          const on = sfx.toggle();
+          soundBtn.textContent = 'SFX: ' + (on ? 'ON' : 'OFF');
+          soundBtn.classList.toggle('active', on);
+        });
+      }
+      if (themeBtn) {
+        themeBtn.textContent = 'THEME: ' + (arcadeTheme.current === 'kids' ? 'KIDS' : 'NEON');
+        themeBtn.classList.toggle('active', arcadeTheme.isKids);
+        themeBtn.addEventListener('click', () => {
+          const t = arcadeTheme.toggle();
+          themeBtn.textContent = 'THEME: ' + (t === 'kids' ? 'KIDS' : 'NEON');
+          themeBtn.classList.toggle('active', arcadeTheme.isKids);
+        });
+      }
     });
   </script>
 </body>

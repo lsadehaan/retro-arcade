@@ -283,6 +283,7 @@ class GameEngine {
   // ── Wave generation ─────────────────────────────────────────────────────
   _startNextWave() {
     this.wave++;
+    if (this.wave > 1 && typeof sfx !== 'undefined') sfx.play('levelup');
     const isBossWave = this.wave % BOSS_WAVE_INTERVAL === 0;
     const waveSpeed = (1 + this.wave * 0.05) * activeDiff.waveSpeedMult;
     const enemyCount = Math.min(5 + this.wave * 2, 30);
@@ -630,6 +631,7 @@ class GameEngine {
     // Score: wave_number * enemy_type_multiplier
     const multiplier = enemy.isBoss ? 500 : enemy.points;
     this.score += this.wave * multiplier;
+    if (typeof sfx !== 'undefined') sfx.play('score');
 
     // Power-up drop
     if (enemy.isBoss) {
@@ -647,6 +649,7 @@ class GameEngine {
   _playerHit(damage) {
     if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(100);
     if (this.invincibleTimer > 0) return;
+    if (typeof sfx !== 'undefined') sfx.play('damage');
 
     if (this.shield > 0) {
       this.shield -= damage * 10;
@@ -662,6 +665,7 @@ class GameEngine {
   }
 
   _collectPowerUp(powerUp) {
+    if (typeof sfx !== 'undefined') sfx.play('powerup');
     if (powerUp.type === 'shield') {
       // Shield refill
       this.shield = Math.min(MAX_SHIELD, this.shield + 30 * this.weaponLevel);
@@ -753,6 +757,13 @@ class AsteroidDefenseRenderer {
           this.engine.keys.fire = true;
           e.preventDefault();
           break;
+      }
+      if (e.key === 'a' || e.key === 'A') {
+        if (typeof autoFireEnabled !== 'undefined') {
+          autoFireEnabled = !autoFireEnabled;
+          const btn = document.getElementById('autofire-btn');
+          if (btn) { btn.classList.toggle('active', autoFireEnabled); btn.textContent = autoFireEnabled ? 'AUTO*' : 'AUTO'; }
+        }
       }
     });
 
@@ -879,6 +890,7 @@ class AsteroidDefenseRenderer {
     this._running = true;
     this._lastTime = performance.now();
     this.overlay.style.display = 'none';
+    if (typeof sfx !== 'undefined') sfx.play('start');
     this._loop(this._lastTime);
   }
 
@@ -887,6 +899,9 @@ class AsteroidDefenseRenderer {
 
     const dt = Math.min((ts - this._lastTime) / 1000, 0.05); // cap at 50ms
     this._lastTime = ts;
+
+    // Auto-fire: force fire key on each frame
+    if (typeof autoFireEnabled !== 'undefined' && autoFireEnabled) this.engine.keys.fire = true;
 
     this.engine.update(dt);
     this._draw();
@@ -903,6 +918,7 @@ class AsteroidDefenseRenderer {
   _endGame() {
     this._running = false;
     if (this._rafId) cancelAnimationFrame(this._rafId);
+    if (typeof sfx !== 'undefined') sfx.play('gameover');
 
     const state = this.engine.getState();
 
@@ -1241,6 +1257,9 @@ class AsteroidDefenseRenderer {
   }
 }
 
+// ── Auto-fire state ────────────────────────────────────────────────────────
+let autoFireEnabled = false;
+
 // ── Bootstrap ───────────────────────────────────────────────────────────────
 const canvas = document.getElementById('canvas');
 const overlay = document.getElementById('overlay');
@@ -1259,6 +1278,16 @@ const renderer = new AsteroidDefenseRenderer(canvas, overlay, hud);
 startBtn.addEventListener('click', () => {
   renderer.start();
 });
+
+// ── Auto-fire button ──────────────────────────────────────────────────────
+const autoFireBtn = document.getElementById('autofire-btn');
+if (autoFireBtn) {
+  autoFireBtn.addEventListener('click', () => {
+    autoFireEnabled = !autoFireEnabled;
+    autoFireBtn.classList.toggle('active', autoFireEnabled);
+    autoFireBtn.textContent = autoFireEnabled ? 'AUTO*' : 'AUTO';
+  });
+}
 
 // ── Difficulty selector ────────────────────────────────────────────────────
 function initDifficultySelector() {

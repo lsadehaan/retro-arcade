@@ -119,6 +119,7 @@ let nextUfoTime = 0;
 
 // Input state
 const keys = {};
+let autoFireEnabled = false;
 
 // ── Utility functions ───────────────────────────────────────────────────────
 function rand(min, max) { return Math.random() * (max - min) + min; }
@@ -310,6 +311,7 @@ function createAsteroid(size, x, y, vx, vy) {
 
 function spawnWaveAsteroids() {
   wave++;
+  if (wave > 1) sfx.play('levelup');
   const count = wave + activeDiff.startingAsteroids;
   for (let i = 0; i < count; i++) {
     // Spawn from edges
@@ -371,6 +373,7 @@ function destroyAsteroid(index) {
   // Add score
   score += def.points;
   scoreEl.textContent = score;
+  sfx.play('score');
 
   // Split into children
   if (def.children) {
@@ -607,6 +610,7 @@ function killShip() {
   spawnParticles(ship.x, ship.y, 20);
   lives--;
   updateLivesDisplay();
+  sfx.play('damage');
 
   if (lives <= 0) {
     ship = null;
@@ -644,6 +648,7 @@ function startGame() {
 
   ship = createShip();
   spawnWaveAsteroids();
+  sfx.play('start');
 
   overlay.style.display = 'none';
   const ds = document.getElementById('difficulty-selector');
@@ -656,6 +661,7 @@ function startGame() {
 function endGame() {
   gameOver = true;
   running = false;
+  sfx.play('gameover');
 
   // Show game over overlay
   overlay.querySelector('h2').textContent = 'GAME OVER';
@@ -709,6 +715,9 @@ function update(dt) {
   updateUfoBullets(dt);
   checkCollisions();
 
+  // Auto-fire: force fire key on each frame
+  if (autoFireEnabled) keys[' '] = true;
+
   // Fire continuously while key held
   if (keys[' '] || keys['Space']) fireBullet();
 
@@ -760,6 +769,11 @@ document.addEventListener('keydown', (e) => {
   if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
     e.preventDefault();
   }
+  if (e.key === 'a' || e.key === 'A') {
+    autoFireEnabled = !autoFireEnabled;
+    const btn = document.getElementById('autofire-btn');
+    if (btn) { btn.classList.toggle('active', autoFireEnabled); btn.textContent = autoFireEnabled ? 'AUTO*' : 'AUTO'; }
+  }
 });
 
 document.addEventListener('keyup', (e) => {
@@ -783,6 +797,16 @@ startBtn.addEventListener('click', () => {
   startBtn.textContent = 'START GAME';
   startGame();
 });
+
+// ── Auto-fire button ──────────────────────────────────────────────────────
+const autoFireBtn = document.getElementById('autofire-btn');
+if (autoFireBtn) {
+  autoFireBtn.addEventListener('click', () => {
+    autoFireEnabled = !autoFireEnabled;
+    autoFireBtn.classList.toggle('active', autoFireEnabled);
+    autoFireBtn.textContent = autoFireEnabled ? 'AUTO*' : 'AUTO';
+  });
+}
 
 // ── Difficulty selector ────────────────────────────────────────────────────
 function initDifficultySelector() {

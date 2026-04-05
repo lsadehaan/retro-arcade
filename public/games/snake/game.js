@@ -219,6 +219,7 @@ class NeonGrowth {
     this.gameOverFlag = false;
     this._lastTime = performance.now();
     this._accumulated = 0;
+    if (typeof sfx !== 'undefined') sfx.play('start');
     this._loop(this._lastTime);
   }
 
@@ -311,6 +312,8 @@ class NeonGrowth {
       const food = this.foods[foodIdx];
       this.foods.splice(foodIdx, 1);
       this.score += food.points;
+      if (typeof sfx !== 'undefined') sfx.play('score');
+      if (typeof sfx !== 'undefined' && food.typeKey === 'diamond') sfx.play('powerup');
 
       // Grow
       this._growQueue += food.segments;
@@ -337,6 +340,7 @@ class NeonGrowth {
 
   _endGame() {
     if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(150);
+    if (typeof sfx !== 'undefined') sfx.play('gameover');
     this.running = false;
     if (cancelAnimationFrame) cancelAnimationFrame(this._rafId);
 
