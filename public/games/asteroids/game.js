@@ -769,8 +769,9 @@ document.addEventListener('keydown', (e) => {
   if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
     e.preventDefault();
   }
-  if (e.key === 'a' || e.key === 'A') {
+  if (e.key === 'q' || e.key === 'Q') {
     autoFireEnabled = !autoFireEnabled;
+    if (!autoFireEnabled) keys[' '] = false;
     const btn = document.getElementById('autofire-btn');
     if (btn) { btn.classList.toggle('active', autoFireEnabled); btn.textContent = autoFireEnabled ? 'AUTO*' : 'AUTO'; }
   }
@@ -803,6 +804,7 @@ const autoFireBtn = document.getElementById('autofire-btn');
 if (autoFireBtn) {
   autoFireBtn.addEventListener('click', () => {
     autoFireEnabled = !autoFireEnabled;
+    if (!autoFireEnabled) keys[' '] = false;
     autoFireBtn.classList.toggle('active', autoFireEnabled);
     autoFireBtn.textContent = autoFireEnabled ? 'AUTO*' : 'AUTO';
   });

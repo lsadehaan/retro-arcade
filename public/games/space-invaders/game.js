@@ -758,9 +758,10 @@ class AsteroidDefenseRenderer {
           e.preventDefault();
           break;
       }
-      if (e.key === 'a' || e.key === 'A') {
+      if (e.key === 'q' || e.key === 'Q') {
         if (typeof autoFireEnabled !== 'undefined') {
           autoFireEnabled = !autoFireEnabled;
+          if (!autoFireEnabled) this.engine.keys.fire = false;
           const btn = document.getElementById('autofire-btn');
           if (btn) { btn.classList.toggle('active', autoFireEnabled); btn.textContent = autoFireEnabled ? 'AUTO*' : 'AUTO'; }
         }
