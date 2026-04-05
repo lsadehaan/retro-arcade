@@ -324,6 +324,7 @@ class NeonGrowth {
   }
 
   _endGame() {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(150);
     this.running = false;
     if (cancelAnimationFrame) cancelAnimationFrame(this._rafId);
 

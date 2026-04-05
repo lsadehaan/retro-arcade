@@ -635,6 +635,7 @@ class GameEngine {
   }
 
   _playerHit(damage) {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(100);
     if (this.invincibleTimer > 0) return;
 
     if (this.shield > 0) {

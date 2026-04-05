@@ -477,6 +477,7 @@
   }
 
   function playerHit() {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(150);
     lives--;
     if (lives <= 0) {
       state = 'gameover';

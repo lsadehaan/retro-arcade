@@ -71,7 +71,7 @@ function setDifficulty(diff) {
 // ── Haptic feedback ────────────────────────────────────────────────────────
 
 function hapticPulse(ms) {
-  if (navigator.vibrate) {
+  if (typeof navigator !== 'undefined' && navigator.vibrate) {
     navigator.vibrate(ms);
   }
 }

@@ -531,6 +531,7 @@ canvas {
 .dpad-btn:active {
   background: rgba(0, 255, 255, 0.3);
   box-shadow: 0 0 12px var(--neon-cyan);
+  transform: scale(0.95);
 }
 
 .dpad-btn--blank {
@@ -569,6 +570,7 @@ canvas {
 .touch-btn-fire:active {
   background: rgba(255, 0, 255, 0.3);
   box-shadow: 0 0 12px var(--neon-pink);
+  transform: scale(0.95);
 }
 
 .touch-hint {

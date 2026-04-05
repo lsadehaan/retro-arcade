@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <title>Asteroid Defense Surge — Retro Arcade</title>
   <link rel="stylesheet" href="/css/main.css" />
@@ -20,6 +20,7 @@
       flex-direction: column;
       align-items: center;
       user-select: none;
+      -webkit-user-select: none;
       max-width: 100%;
       overflow-x: clip;
     }
@@ -50,6 +51,8 @@
       box-shadow: 0 0 20px #f0f, 0 0 40px #8000ff;
       max-width: 100%;
       height: auto;
+      touch-action: none;
+      -webkit-touch-callout: none;
     }
     #overlay {
       position: absolute;
@@ -220,9 +223,9 @@
       </div>
       <div class="touch-controls" id="touch-controls">
         <div class="touch-controls-row">
-          <button class="dpad-btn" data-key="ArrowLeft" style="width:64px;height:64px;font-size:1.6rem;">&#9664;</button>
+          <button class="dpad-btn" data-key="ArrowLeft" style="width:72px;height:72px;font-size:1.8rem;">&#9664;</button>
           <button class="touch-btn-fire" id="fire-btn">FIRE</button>
-          <button class="dpad-btn" data-key="ArrowRight" style="width:64px;height:64px;font-size:1.6rem;">&#9654;</button>
+          <button class="dpad-btn" data-key="ArrowRight" style="width:72px;height:72px;font-size:1.8rem;">&#9654;</button>
         </div>
         <div class="touch-hint">DRAG TO MOVE &bull; TAP TO FIRE</div>
       </div>
