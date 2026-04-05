@@ -114,7 +114,7 @@
       transition: opacity 0.15s, box-shadow 0.15s;
     }
     .diff-btn:hover { opacity: 0.85; }
-    .diff-btn.active {
+    .diff-btn.diff-active {
       opacity: 1;
       box-shadow: 0 0 8px #33ff88;
       border-width: 2px;
@@ -221,9 +221,9 @@
             Destroy asteroids. Survive the void.
           </p>
           <div id="difficulty-selector">
-            <button class="diff-btn" data-diff="easy">EASY</button>
-            <button class="diff-btn" data-diff="normal">NORMAL</button>
-            <button class="diff-btn" data-diff="hard">HARD</button>
+            <button class="diff-btn" data-difficulty="easy">Easy</button>
+            <button class="diff-btn" data-difficulty="normal">Normal</button>
+            <button class="diff-btn" data-difficulty="hard">Hard</button>
           </div>
           <button id="start-btn">START GAME</button>
         </div>
@@ -314,10 +314,10 @@
           const scoreSpan = document.createElement('span');
           scoreSpan.className = 'lb-score';
           scoreSpan.textContent = s.score.toLocaleString();
-          if (s.difficulty) {
+          if (s.difficulty && s.difficulty !== 'normal') {
             const diffSpan = document.createElement('span');
             diffSpan.className = 'lb-diff';
-            diffSpan.textContent = s.difficulty.charAt(0).toUpperCase();
+            diffSpan.textContent = s.difficulty === 'easy' ? 'E' : 'H';
             scoreSpan.appendChild(diffSpan);
           }
           li.append(rankSpan, nameSpan, scoreSpan);

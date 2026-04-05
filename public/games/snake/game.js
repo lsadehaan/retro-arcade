@@ -407,19 +407,24 @@ class NeonGrowth {
     ov.appendChild(h2);
     ov.appendChild(p);
 
-    // Show difficulty selector on game over
-    const ds = typeof document !== 'undefined' && document.getElementById ? document.getElementById('difficulty-selector') : null;
-    if (ds) {
-      const clone = ds.cloneNode(true);
-      clone.style.display = 'flex';
-      clone.querySelectorAll('.diff-btn').forEach(b => {
-        b.classList.toggle('diff-active', b.dataset.difficulty === currentDifficulty);
+    // Re-add difficulty selector (guarded for Node.js test environment)
+    if (typeof document !== 'undefined' && document.getElementById) {
+      const diffDiv = document.createElement('div');
+      diffDiv.id = 'difficulty-selector';
+      ['easy','normal','hard'].forEach(d => {
+        const b = document.createElement('button');
+        b.className = 'diff-btn' + (d === currentDifficulty ? ' diff-active' : '');
+        b.dataset = b.dataset || {};
+        b.dataset.difficulty = d;
+        b.textContent = d.charAt(0).toUpperCase() + d.slice(1);
         b.addEventListener('click', () => {
-          setDifficulty(b.dataset.difficulty);
-          clone.querySelectorAll('.diff-btn').forEach(x => x.classList.toggle('diff-active', x.dataset.difficulty === currentDifficulty));
+          setDifficulty(d);
+          diffDiv.querySelectorAll('.diff-btn').forEach(x => x.classList.remove('diff-active'));
+          b.classList.add('diff-active');
         });
+        diffDiv.appendChild(b);
       });
-      ov.appendChild(clone);
+      ov.appendChild(diffDiv);
     }
 
     ov.appendChild(btn);

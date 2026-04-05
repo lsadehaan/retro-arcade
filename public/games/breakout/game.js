@@ -616,11 +616,11 @@ startBtn.addEventListener('click', () => {
 function initDifficultySelector() {
   const btns = document.querySelectorAll('#difficulty-selector .diff-btn');
   btns.forEach(btn => {
-    if (btn.dataset.diff === currentDifficulty) btn.classList.add('active');
+    if (btn.dataset.difficulty === currentDifficulty) btn.classList.add('diff-active');
     btn.addEventListener('click', () => {
-      btns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      setDifficulty(btn.dataset.diff);
+      btns.forEach(b => b.classList.remove('diff-active'));
+      btn.classList.add('diff-active');
+      setDifficulty(btn.dataset.difficulty);
     });
   });
 }
