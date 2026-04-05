@@ -150,6 +150,10 @@
       </span>
     </div>
   </nav>
+  <div class="settings-bar">
+    <button class="settings-btn" id="sound-toggle">SFX: ON</button>
+    <button class="settings-btn" id="theme-toggle">THEME: NEON</button>
+  </div>
 
   <div class="game-layout">
     <div class="game-main">
@@ -201,6 +205,9 @@
     </div>
   </div>
 
+  <script src="/js/sfx.js"></script>
+  <script src="/js/theme.js"></script>
+  <script src="/js/settings-init.js"></script>
   <script src="/js/api.js"></script>
   <script>
     // D-pad touch controls
@@ -267,6 +274,7 @@
         });
       }
       loadMiniLeaderboard();
+
     });
   </script>
   <script src="game.js?v=3"></script>

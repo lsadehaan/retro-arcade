@@ -245,6 +245,10 @@
       </span>
     </div>
   </nav>
+  <div class="settings-bar">
+    <button class="settings-btn" id="sound-toggle">SFX: ON</button>
+    <button class="settings-btn" id="theme-toggle">THEME: NEON</button>
+  </div>
 
   <div class="game-layout">
     <div class="game-main">
@@ -285,6 +289,7 @@
         <div class="touch-controls-row">
           <button class="dpad-btn" data-key="ArrowLeft" style="width:72px;height:72px;font-size:1.8rem;">&#9664;</button>
           <button class="touch-btn-fire" id="fire-btn">FIRE</button>
+          <button class="touch-btn-autofire" id="autofire-btn">AUTO</button>
           <button class="dpad-btn" data-key="ArrowRight" style="width:72px;height:72px;font-size:1.8rem;">&#9654;</button>
         </div>
         <div class="touch-hint">DRAG TO MOVE &bull; TAP TO FIRE</div>
@@ -299,6 +304,9 @@
     </div>
   </div>
 
+  <script src="/js/sfx.js"></script>
+  <script src="/js/theme.js"></script>
+  <script src="/js/settings-init.js"></script>
   <script src="/js/api.js"></script>
   <script>
     // Touch controls — movement buttons
@@ -394,6 +402,7 @@
         });
       }
       loadMiniLeaderboard();
+
     });
   </script>
   <script src="game.js?v=2"></script>

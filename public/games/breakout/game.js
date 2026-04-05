@@ -159,6 +159,7 @@ function initGame() {
 }
 
 function nextLevel() {
+  sfx.play('levelup');
   level++;
   widePaddleTimer = 0;
   paddle.width = activeDiff.paddleWidth;
@@ -347,6 +348,7 @@ function update(dt) {
         if (brick.hp <= 0) {
           brick.alive = false;
           score += brick.points;
+          sfx.play('score');
           spawnPowerUp(brick.x + brick.w / 2, brick.y + brick.h / 2);
         }
       }
@@ -362,6 +364,7 @@ function update(dt) {
   // If no balls left, lose a life
   if (balls.length === 0) {
     lives--;
+    sfx.play('damage');
     if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(100);
     updateHUD();
     if (lives <= 0) {
@@ -401,6 +404,7 @@ function update(dt) {
 }
 
 function applyPowerUp(kind) {
+  sfx.play('powerup');
   if (kind === PU_WIDE) {
     paddle.width = activeDiff.paddleWidth * WIDE_PADDLE_MULT;
     if (paddle.x + paddle.width > CANVAS_W) paddle.x = CANVAS_W - paddle.width;
@@ -428,6 +432,7 @@ function applyPowerUp(kind) {
 // ── Game over ──────────────────────────────────────────────────────────────
 async function gameOver() {
   if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(150);
+  sfx.play('gameover');
   gameState = 'gameover';
   overlay.style.display = 'flex';
   overlay.querySelector('h2').textContent = 'GAME OVER';
@@ -608,6 +613,7 @@ startBtn.addEventListener('click', () => {
   const diffSel = document.getElementById('difficulty-selector');
   if (diffSel) diffSel.style.display = 'none';
   gameState = 'playing';
+  sfx.play('start');
   lastTime = 0;
   requestAnimationFrame(gameLoop);
 });

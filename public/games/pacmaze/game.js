@@ -398,12 +398,15 @@
       map[nr][nc] = 0;
       score += SCORE_PER_DOT * scoreMultiplier;
       totalDots--;
+      sfx.play('score');
     } else if (t === 3) {
       map[nr][nc] = 0;
       score += SCORE_PER_POWER * scoreMultiplier;
       totalDots--;
       scaredUntil = performance.now() + activeDiff.scaredDuration;
       ghostEatChain = 0;
+      sfx.play('score');
+      sfx.play('powerup');
     }
 
     // Eat special item
@@ -491,11 +494,13 @@
     lives--;
     if (lives <= 0) {
       state = 'gameover';
+      sfx.play('gameover');
       submitScore();
       showOverlay('GAME OVER', `Final Score: ${score}`, 'PLAY AGAIN', startGame);
       const sel = document.getElementById('difficulty-selector');
       if (sel) sel.style.display = 'flex';
     } else {
+      sfx.play('damage');
       // Reset positions
       player.col = PLAYER_START.col;
       player.row = PLAYER_START.row;
@@ -881,6 +886,7 @@
     // Level complete
     if (totalDots <= 0) {
       state = 'levelcomplete';
+      sfx.play('levelup');
       showOverlay(
         'LEVEL COMPLETE!',
         `Score: ${score} -- Ready for Level ${level + 1}?`,
@@ -956,6 +962,7 @@
     lastPlayerMove = lastFrame;
     lastGhostMove = lastFrame;
     hideOverlay();
+    sfx.play('start');
     requestAnimationFrame(gameLoop);
   }
 
