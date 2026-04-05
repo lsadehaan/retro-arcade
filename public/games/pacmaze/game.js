@@ -19,6 +19,16 @@
   const GHOST_EAT_BASE = 200;
   const COLLISION_DIST = CELL * 0.6; // circle collision — ~60% of cell, forgiving like original Pac-Man
 
+  // -- Difficulty settings --------------------------------------------------------
+  const DIFFICULTY_CONFIG = {
+    easy:   { label: 'EASY',   ghostSpeedMs: 280, scaredDuration: 12000, lives: 5, collisionDist: 0.45 },
+    normal: { label: 'NORMAL', ghostSpeedMs: 220, scaredDuration: 8000,  lives: 3, collisionDist: 0.6 },
+    hard:   { label: 'HARD',   ghostSpeedMs: 180, scaredDuration: 5000,  lives: 2, collisionDist: 0.7 },
+  };
+  let currentDifficulty = localStorage.getItem('pacmaze-difficulty') || 'normal';
+  let activeDiff = DIFFICULTY_CONFIG[currentDifficulty];
+  function setDifficulty(d) { currentDifficulty = d; activeDiff = DIFFICULTY_CONFIG[d]; localStorage.setItem('pacmaze-difficulty', d); }
+
   // -- Maze layouts (3 layouts, 21x21) ------------------------------------------
   // 0=empty(no dot), 1=wall, 2=dot, 3=power-pellet, 4=ghost-house
   const MAZES = [
@@ -237,7 +247,7 @@
 
   function initGame() {
     score = 0;
-    lives = 3;
+    lives = activeDiff.lives;
     initLevel(1, 0);
   }
 
@@ -263,7 +273,7 @@
   function moveGhost(ghost, now) {
     if (!ghost.released) return;
     if (ghost.dead) {
-      ghost.deadTimer -= GHOST_SPEED_MS;
+      ghost.deadTimer -= activeDiff.ghostSpeedMs;
       if (ghost.deadTimer <= 0) {
         // Return ghost to house
         ghost.col = GHOST_START[ghost.releaseIndex].col;
@@ -392,7 +402,7 @@
       map[nr][nc] = 0;
       score += SCORE_PER_POWER * scoreMultiplier;
       totalDots--;
-      scaredUntil = performance.now() + SCARED_DURATION;
+      scaredUntil = performance.now() + activeDiff.scaredDuration;
       ghostEatChain = 0;
     }
 
@@ -460,7 +470,7 @@
       if (!ghost.released) continue;
       const dx = ghost.x - player.x;
       const dy = ghost.y - player.y;
-      if (Math.sqrt(dx * dx + dy * dy) < COLLISION_DIST) {
+      if (Math.sqrt(dx * dx + dy * dy) < CELL * activeDiff.collisionDist) {
         if (now < scaredUntil) {
           // Eat ghost (200/400/800/1600 cascade)
           const pts = GHOST_EAT_BASE * Math.pow(2, ghostEatChain) * scoreMultiplier;
@@ -483,6 +493,8 @@
       state = 'gameover';
       submitScore();
       showOverlay('GAME OVER', `Final Score: ${score}`, 'PLAY AGAIN', startGame);
+      const sel = document.getElementById('difficulty-selector');
+      if (sel) sel.style.display = 'flex';
     } else {
       // Reset positions
       player.col = PLAYER_START.col;
@@ -520,7 +532,7 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ score }),
+      body: JSON.stringify({ score, difficulty: currentDifficulty }),
     })
       .then(async (res) => {
         if (res.status === 401) {
@@ -835,7 +847,7 @@
     }
 
     // Ghost movement
-    if (now - lastGhostMove > GHOST_SPEED_MS) {
+    if (now - lastGhostMove > activeDiff.ghostSpeedMs) {
       ghosts.forEach(g => moveGhost(g, now));
       lastGhostMove = now;
     }
@@ -857,7 +869,7 @@
 
     // Smooth interpolation (must happen before collision check for accurate pixel positions)
     interpolate(player, PLAYER_SPEED_MS, now);
-    ghosts.forEach(g => { if (g.released && !g.dead) interpolate(g, GHOST_SPEED_MS, now); });
+    ghosts.forEach(g => { if (g.released && !g.dead) interpolate(g, activeDiff.ghostSpeedMs, now); });
 
     // Collisions (circle-based on interpolated pixel positions)
     checkCollisions(now);
@@ -936,6 +948,8 @@
 
   // -- Start ----------------------------------------------------------------------
   function startGame() {
+    const sel = document.getElementById('difficulty-selector');
+    if (sel) sel.style.display = 'none';
     initGame();
     state = 'playing';
     lastFrame = performance.now();
@@ -945,9 +959,25 @@
     requestAnimationFrame(gameLoop);
   }
 
+  // -- Difficulty selector ---------------------------------------------------------
+  function initDifficultySelector() {
+    const selector = document.getElementById('difficulty-selector');
+    if (!selector) return;
+    const buttons = selector.querySelectorAll('[data-difficulty]');
+    buttons.forEach(btn => {
+      if (btn.dataset.difficulty === currentDifficulty) btn.classList.add('diff-active');
+      btn.addEventListener('click', () => {
+        setDifficulty(btn.dataset.difficulty);
+        buttons.forEach(b => b.classList.remove('diff-active'));
+        btn.classList.add('diff-active');
+      });
+    });
+  }
+
   window.addEventListener('load', () => {
     setupCanvas();
     updateHUD();
+    initDifficultySelector();
 
     document.getElementById('start-btn').addEventListener('click', () => {
       startGame();

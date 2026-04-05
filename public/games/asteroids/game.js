@@ -25,6 +25,16 @@ const INVULN_TIME = 2000; // ms
 const MAX_LIVES = 3;
 const PARTICLE_LIFE = 30; // frames
 
+// ── Difficulty ─────────────────────────────────────────────────────────────
+const DIFFICULTY_CONFIG = {
+  easy:   { label: 'EASY',   maxLives: 5, asteroidSpeedMult: 0.7, invulnTime: 3000, startingAsteroids: 3 },
+  normal: { label: 'NORMAL', maxLives: 3, asteroidSpeedMult: 1.0, invulnTime: 2000, startingAsteroids: 3 },
+  hard:   { label: 'HARD',   maxLives: 2, asteroidSpeedMult: 1.3, invulnTime: 1500, startingAsteroids: 5 },
+};
+let currentDifficulty = localStorage.getItem('asteroids-difficulty') || 'normal';
+let activeDiff = DIFFICULTY_CONFIG[currentDifficulty];
+function setDifficulty(d) { currentDifficulty = d; activeDiff = DIFFICULTY_CONFIG[d]; localStorage.setItem('asteroids-difficulty', d); }
+
 const ASTEROID_SIZES = {
   large:  { radius: 40, points: 25,  speed: 1.0, children: 'medium' },
   medium: { radius: 20, points: 50,  speed: 1.8, children: 'small' },
@@ -90,7 +100,7 @@ const waveEl = document.getElementById('wave');
 let running = false;
 let gameOver = false;
 let score = 0;
-let lives = MAX_LIVES;
+let lives = activeDiff.maxLives;
 let wave = 0;
 let lastTime = 0;
 let lastFireTime = 0;
@@ -147,7 +157,7 @@ function createShip() {
     angle: -Math.PI / 2, // pointing up
     thrusting: false,
     invulnerable: true,
-    invulnTimer: INVULN_TIME,
+    invulnTimer: activeDiff.invulnTime,
     visible: true,
     flickerTimer: 0,
   };
@@ -285,10 +295,11 @@ function drawBullets() {
 // ── Asteroids ───────────────────────────────────────────────────────────────
 function createAsteroid(size, x, y, vx, vy) {
   const def = ASTEROID_SIZES[size];
+  const sm = activeDiff.asteroidSpeedMult;
   return {
     x, y,
-    vx: vx ?? rand(-def.speed, def.speed),
-    vy: vy ?? rand(-def.speed, def.speed),
+    vx: (vx ?? rand(-def.speed, def.speed)) * sm,
+    vy: (vy ?? rand(-def.speed, def.speed)) * sm,
     size,
     radius: def.radius,
     shape: generateAsteroidShape(def.radius),
@@ -299,7 +310,7 @@ function createAsteroid(size, x, y, vx, vy) {
 
 function spawnWaveAsteroids() {
   wave++;
-  const count = wave + 3;
+  const count = wave + activeDiff.startingAsteroids;
   for (let i = 0; i < count; i++) {
     // Spawn from edges
     let x, y;
@@ -615,7 +626,7 @@ function updateLivesDisplay() {
 // ── Game flow ───────────────────────────────────────────────────────────────
 function startGame() {
   score = 0;
-  lives = MAX_LIVES;
+  lives = activeDiff.maxLives;
   wave = 0;
   bullets = [];
   asteroids = [];
@@ -635,6 +646,8 @@ function startGame() {
   spawnWaveAsteroids();
 
   overlay.style.display = 'none';
+  const ds = document.getElementById('difficulty-selector');
+  if (ds) ds.style.display = 'none';
   running = true;
   lastTime = performance.now();
   requestAnimationFrame(gameLoop);
@@ -649,6 +662,8 @@ function endGame() {
   overlay.querySelector('p').textContent = 'Final Score: ' + score.toLocaleString();
   startBtn.textContent = 'PLAY AGAIN';
   overlay.style.display = 'flex';
+  const ds = document.getElementById('difficulty-selector');
+  if (ds) ds.style.display = 'flex';
 
   // Submit score
   submitScore();
@@ -656,7 +671,7 @@ function endGame() {
 
 async function submitScore() {
   try {
-    const res = await api.post('/api/scores/asteroids', { score });
+    const res = await api.post('/api/scores/asteroids', { score, difficulty: currentDifficulty });
     if (res && res.ok) {
       const data = await res.json();
       const rankInfo = document.createElement('p');
@@ -768,3 +783,17 @@ startBtn.addEventListener('click', () => {
   startBtn.textContent = 'START GAME';
   startGame();
 });
+
+// ── Difficulty selector ────────────────────────────────────────────────────
+function initDifficultySelector() {
+  const btns = document.querySelectorAll('#difficulty-selector .diff-btn');
+  btns.forEach(btn => {
+    if (btn.dataset.difficulty === currentDifficulty) btn.classList.add('diff-active');
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.classList.remove('diff-active'));
+      btn.classList.add('diff-active');
+      setDifficulty(btn.dataset.difficulty);
+    });
+  });
+}
+initDifficultySelector();

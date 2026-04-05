@@ -123,6 +123,59 @@
     .lb-rank { color: var(--neon-cyan); min-width: 28px; }
     .lb-name { flex: 1; margin: 0 8px; }
     .lb-score { color: var(--neon-green); font-family: var(--font-mono); }
+    /* Difficulty selector */
+    #difficulty-selector {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 4px;
+    }
+    .diff-btn {
+      font-family: var(--font-pixel);
+      font-size: 0.45rem;
+      padding: 6px 14px;
+      border: 2px solid #555;
+      background: transparent;
+      color: #888;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: all 0.15s;
+    }
+    .diff-btn:hover {
+      border-color: #aaa;
+      color: #ccc;
+    }
+    .diff-btn.diff-active {
+      border-color: currentColor;
+      text-shadow: 0 0 6px currentColor;
+      box-shadow: 0 0 8px currentColor;
+    }
+    .diff-btn[data-difficulty="easy"].diff-active {
+      color: #39ff14;
+      border-color: #39ff14;
+    }
+    .diff-btn[data-difficulty="normal"].diff-active {
+      color: #ffff00;
+      border-color: #ffff00;
+    }
+    .diff-btn[data-difficulty="hard"].diff-active {
+      color: #ff3333;
+      border-color: #ff3333;
+    }
+
+    /* Difficulty tags in leaderboard */
+    .lb-diff {
+      font-family: var(--font-pixel);
+      font-size: 0.35rem;
+      margin-left: 6px;
+      padding: 1px 4px;
+      border-radius: 2px;
+      text-transform: uppercase;
+    }
+    .lb-diff-easy { color: #39ff14; }
+    .lb-diff-normal { color: #ffff00; }
+    .lb-diff-hard { color: #ff3333; }
     .lb-empty { color: #555; font-size: 0.75rem; text-align: center; padding: 12px 0; }
 
     @media (max-width: 900px) {
@@ -191,6 +244,11 @@
             Space — Hard drop<br>
             C — Hold piece
           </p>
+          <div id="difficulty-selector">
+            <button class="diff-btn" data-difficulty="easy">Easy</button>
+            <button class="diff-btn" data-difficulty="normal">Normal</button>
+            <button class="diff-btn" data-difficulty="hard">Hard</button>
+          </div>
           <button id="start-btn">START GAME</button>
         </div>
       </div>
@@ -293,6 +351,15 @@
           scoreSpan.className = 'lb-score';
           scoreSpan.textContent = s.score.toLocaleString();
           li.append(rankSpan, nameSpan, scoreSpan);
+
+          // Show difficulty tag
+          if (s.difficulty && s.difficulty !== 'normal') {
+            const diffSpan = document.createElement('span');
+            diffSpan.className = 'lb-diff lb-diff-' + s.difficulty;
+            diffSpan.textContent = s.difficulty === 'easy' ? 'E' : 'H';
+            li.appendChild(diffSpan);
+          }
+
           list.appendChild(li);
         }
       } catch (err) {

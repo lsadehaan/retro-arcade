@@ -135,6 +135,14 @@
     .lb-score { color: var(--neon-green); font-family: var(--font-mono); }
     .lb-empty { color: #555; font-size: 0.75rem; text-align: center; padding: 12px 0; }
 
+    #difficulty-selector { display: flex; gap: 8px; justify-content: center; margin-top: 4px; }
+    .diff-btn { font-family: var(--font-pixel); font-size: 0.45rem; padding: 6px 14px; border: 2px solid #555; background: transparent; color: #888; cursor: pointer; letter-spacing: 0.08em; text-transform: uppercase; transition: all 0.15s; }
+    .diff-btn:hover { border-color: #aaa; color: #ccc; }
+    .diff-btn.diff-active { border-color: currentColor; text-shadow: 0 0 6px currentColor; box-shadow: 0 0 8px currentColor; }
+    .diff-btn[data-difficulty="easy"].diff-active { color: #39ff14; border-color: #39ff14; }
+    .diff-btn[data-difficulty="normal"].diff-active { color: #ffff00; border-color: #ffff00; }
+    .diff-btn[data-difficulty="hard"].diff-active { color: #ff3333; border-color: #ff3333; }
+
     @media (max-width: 900px) {
       .game-layout { flex-direction: column; align-items: center; }
       .game-leaderboard { max-width: 100%; min-width: 280px; }
@@ -171,6 +179,11 @@
         <div id="overlay">
           <h2>NEON GROWTH</h2>
           <p>Arrow keys, WASD, or swipe to move</p>
+          <div id="difficulty-selector">
+            <button class="diff-btn" data-difficulty="easy">Easy</button>
+            <button class="diff-btn" data-difficulty="normal">Normal</button>
+            <button class="diff-btn" data-difficulty="hard">Hard</button>
+          </div>
           <button id="start-btn">START GAME</button>
         </div>
       </div>
@@ -240,6 +253,12 @@
           const nameSpan = document.createElement('span');
           nameSpan.className = 'lb-name';
           nameSpan.textContent = isSelf ? s.username + ' (YOU)' : s.username;
+          if (s.difficulty && s.difficulty !== 'normal') {
+            const diffTag = document.createElement('span');
+            diffTag.style.cssText = 'font-size:0.6rem;opacity:0.6;margin-left:2px;';
+            diffTag.textContent = s.difficulty.charAt(0).toUpperCase();
+            nameSpan.appendChild(diffTag);
+          }
           const scoreSpan = document.createElement('span');
           scoreSpan.className = 'lb-score';
           scoreSpan.textContent = s.score.toLocaleString();
@@ -264,6 +283,6 @@
       loadMiniLeaderboard();
     });
   </script>
-  <script src="game.js?v=2" type="module"></script>
+  <script src="game.js?v=3" type="module"></script>
 </body>
 </html>

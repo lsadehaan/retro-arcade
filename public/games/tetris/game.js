@@ -124,6 +124,16 @@
   // ── Scoring ───────────────────────────────────────────────────────────────
   const LINE_SCORES = [0, 100, 300, 500, 800];
 
+  // ── Difficulty ────────────────────────────────────────────────────────────
+  const DIFFICULTY_CONFIG = {
+    easy:   { label: 'EASY',   baseDropInterval: 1200, levelSpeedDecrease: 60, minDropInterval: 100 },
+    normal: { label: 'NORMAL', baseDropInterval: 1000, levelSpeedDecrease: 80, minDropInterval: 50 },
+    hard:   { label: 'HARD',   baseDropInterval: 800,  levelSpeedDecrease: 100, minDropInterval: 30 },
+  };
+  let currentDifficulty = localStorage.getItem('tetris-difficulty') || 'normal';
+  let activeDiff = DIFFICULTY_CONFIG[currentDifficulty];
+  function setDifficulty(d) { currentDifficulty = d; activeDiff = DIFFICULTY_CONFIG[d]; localStorage.setItem('tetris-difficulty', d); }
+
   // ── Game state ────────────────────────────────────────────────────────────
   let board = [];           // ROWS x COLS, each cell null or color string
   let currentPiece = null;  // { name, rotation, x, y }
@@ -135,7 +145,7 @@
   let lines = 0;
   let gameOver = false;
   let running = false;
-  let dropInterval = 1000;
+  let dropInterval = activeDiff.baseDropInterval;
   let dropAccumulator = 0;
   let lastTime = 0;
   let bag = [];
@@ -342,7 +352,7 @@
       const newLevel = Math.floor(lines / 10) + 1;
       if (newLevel > level) {
         level = newLevel;
-        dropInterval = Math.max(50, 1000 - (level - 1) * 80);
+        dropInterval = Math.max(activeDiff.minDropInterval, activeDiff.baseDropInterval - (level - 1) * activeDiff.levelSpeedDecrease);
       }
     }
     updateHud();
@@ -572,14 +582,25 @@
     const btn = document.createElement('button');
     btn.textContent = 'PLAY AGAIN';
     btn.addEventListener('click', startGame);
-    overlay.append(h2, p, btn);
+    // Re-add difficulty selector
+    const diffDiv = document.createElement('div');
+    diffDiv.id = 'difficulty-selector';
+    ['easy','normal','hard'].forEach(d => {
+      const b = document.createElement('button');
+      b.className = 'diff-btn' + (d === currentDifficulty ? ' diff-active' : '');
+      b.dataset.difficulty = d;
+      b.textContent = d.charAt(0).toUpperCase() + d.slice(1);
+      diffDiv.appendChild(b);
+    });
+    overlay.append(h2, p, diffDiv, btn);
     overlay.style.display = 'flex';
+    initDifficultySelector();
 
     // Submit score
     try {
       const user = await api.getUser();
       if (user) {
-        await api.post('/api/scores/tetris', { score });
+        await api.post('/api/scores/tetris', { score, difficulty: currentDifficulty });
         if (typeof loadMiniLeaderboard === 'function') loadMiniLeaderboard();
       }
     } catch (err) {
@@ -593,7 +614,7 @@
     score = 0;
     level = 1;
     lines = 0;
-    dropInterval = 1000;
+    dropInterval = activeDiff.baseDropInterval;
     dropAccumulator = 0;
     lastTime = 0;
     gameOver = false;
@@ -610,6 +631,9 @@
 
     updateHud();
     overlay.style.display = 'none';
+    // Hide difficulty selector during gameplay
+    const diffSelector = document.getElementById('difficulty-selector');
+    if (diffSelector) diffSelector.style.display = 'none';
     running = true;
     requestAnimationFrame(gameLoop);
   }
@@ -708,8 +732,28 @@
     }
   });
 
+  // ── Difficulty selector ────────────────────────────────────────────────────
+  function initDifficultySelector() {
+    const selector = document.getElementById('difficulty-selector');
+    if (!selector) return;
+
+    const buttons = selector.querySelectorAll('[data-difficulty]');
+    buttons.forEach(btn => {
+      if (btn.dataset.difficulty === currentDifficulty) {
+        btn.classList.add('diff-active');
+      }
+
+      btn.addEventListener('click', () => {
+        setDifficulty(btn.dataset.difficulty);
+        buttons.forEach(b => b.classList.remove('diff-active'));
+        btn.classList.add('diff-active');
+      });
+    });
+  }
+
   // ── Start button ──────────────────────────────────────────────────────────
   startBtn.addEventListener('click', startGame);
+  initDifficultySelector();
 
   // Initial draw
   board = createBoard();
