@@ -310,6 +310,7 @@
 
   <script src="/js/sfx.js"></script>
   <script src="/js/theme.js"></script>
+  <script src="/js/settings-init.js"></script>
   <script src="/js/api.js"></script>
   <script>
     // Touch controls — paddle movement buttons
@@ -389,28 +390,6 @@
       }
       loadMiniLeaderboard();
     });
-  </script>
-  <script>
-    const soundBtn = document.getElementById('sound-toggle');
-    const themeBtn = document.getElementById('theme-toggle');
-    if (soundBtn) {
-      soundBtn.textContent = 'SFX: ' + (sfx.enabled ? 'ON' : 'OFF');
-      soundBtn.classList.toggle('active', sfx.enabled);
-      soundBtn.addEventListener('click', () => {
-        const on = sfx.toggle();
-        soundBtn.textContent = 'SFX: ' + (on ? 'ON' : 'OFF');
-        soundBtn.classList.toggle('active', on);
-      });
-    }
-    if (themeBtn) {
-      themeBtn.textContent = 'THEME: ' + (arcadeTheme.current === 'kids' ? 'KIDS' : 'NEON');
-      themeBtn.classList.toggle('active', arcadeTheme.isKids);
-      themeBtn.addEventListener('click', () => {
-        const t = arcadeTheme.toggle();
-        themeBtn.textContent = 'THEME: ' + (t === 'kids' ? 'KIDS' : 'NEON');
-        themeBtn.classList.toggle('active', arcadeTheme.isKids);
-      });
-    }
   </script>
   <script src="game.js"></script>
 </body>

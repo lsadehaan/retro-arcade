@@ -124,6 +124,7 @@
 
   <script src="/js/sfx.js"></script>
   <script src="/js/theme.js"></script>
+  <script src="/js/settings-init.js"></script>
   <script src="/js/api.js"></script>
   <script>
     // Fetch top scores for each game card
@@ -165,24 +166,6 @@
         });
       }
       loadTopScores();
-
-      // Settings toggles
-      const soundBtn = document.getElementById('sound-toggle');
-      const themeBtn = document.getElementById('theme-toggle');
-      soundBtn.textContent = 'SFX: ' + (sfx.enabled ? 'ON' : 'OFF');
-      soundBtn.classList.toggle('active', sfx.enabled);
-      themeBtn.textContent = 'THEME: ' + (arcadeTheme.current === 'kids' ? 'KIDS' : 'NEON');
-      themeBtn.classList.toggle('active', arcadeTheme.isKids);
-      soundBtn.addEventListener('click', () => {
-        const on = sfx.toggle();
-        soundBtn.textContent = 'SFX: ' + (on ? 'ON' : 'OFF');
-        soundBtn.classList.toggle('active', on);
-      });
-      themeBtn.addEventListener('click', () => {
-        const t = arcadeTheme.toggle();
-        themeBtn.textContent = 'THEME: ' + (t === 'kids' ? 'KIDS' : 'NEON');
-        themeBtn.classList.toggle('active', arcadeTheme.isKids);
-      });
     });
   </script>
 </body>
