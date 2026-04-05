@@ -95,6 +95,36 @@
     }
     #overlay button:hover { background: rgba(51,255,136,0.1); }
 
+    /* Difficulty selector */
+    #difficulty-selector {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .diff-btn {
+      background: transparent;
+      border: 1px solid #33ff88;
+      color: #33ff88;
+      font-family: inherit;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.7rem;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      opacity: 0.6;
+      transition: opacity 0.15s, box-shadow 0.15s;
+    }
+    .diff-btn:hover { opacity: 0.85; }
+    .diff-btn.active {
+      opacity: 1;
+      box-shadow: 0 0 8px #33ff88;
+      border-width: 2px;
+    }
+    .lb-diff {
+      font-size: 0.6rem;
+      opacity: 0.5;
+      margin-left: 4px;
+    }
+
     /* Leaderboard panel */
     .game-leaderboard {
       background: var(--surface);
@@ -190,6 +220,11 @@
             Space — Fire<br>
             Destroy asteroids. Survive the void.
           </p>
+          <div id="difficulty-selector">
+            <button class="diff-btn" data-diff="easy">EASY</button>
+            <button class="diff-btn" data-diff="normal">NORMAL</button>
+            <button class="diff-btn" data-diff="hard">HARD</button>
+          </div>
           <button id="start-btn">START GAME</button>
         </div>
       </div>
@@ -279,6 +314,12 @@
           const scoreSpan = document.createElement('span');
           scoreSpan.className = 'lb-score';
           scoreSpan.textContent = s.score.toLocaleString();
+          if (s.difficulty) {
+            const diffSpan = document.createElement('span');
+            diffSpan.className = 'lb-diff';
+            diffSpan.textContent = s.difficulty.charAt(0).toUpperCase();
+            scoreSpan.appendChild(diffSpan);
+          }
           li.append(rankSpan, nameSpan, scoreSpan);
           list.appendChild(li);
         }

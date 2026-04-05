@@ -55,15 +55,7 @@ const gameOverInfo = document.getElementById('game-over-info');
 const restartBtn = document.getElementById('restart-btn');
 
 // ── Difficulty selector ─────────────────────────────────────────────────────
-let selectedDifficulty = 'normal';
-const diffBtns = document.querySelectorAll('.diff-btn');
-diffBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    diffBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedDifficulty = btn.dataset.diff;
-  });
-});
+let selectedDifficulty = localStorage.getItem('pong-difficulty') || 'normal';
 
 // ── Game state ──────────────────────────────────────────────────────────────
 let running = false;
@@ -127,6 +119,10 @@ function spawnParticle(x, y) {
 
 // ── Start game ──────────────────────────────────────────────────────────────
 function startGame() {
+  // Hide difficulty selector during gameplay
+  const diffSelector = document.getElementById('difficulty-selector');
+  if (diffSelector) diffSelector.style.display = 'none';
+
   playerScore = 0;
   cpuScore = 0;
   totalRallies = 0;
@@ -275,7 +271,7 @@ async function endMatch(playerWon) {
   if (!scoreSubmitted) {
     scoreSubmitted = true;
     try {
-      await api.post('/api/scores/pong', { score: totalRallies });
+      await api.post('/api/scores/pong', { score: totalRallies, difficulty: selectedDifficulty });
     } catch (err) {
       console.error('Score submission failed:', err);
     }
@@ -427,4 +423,24 @@ startBtn.addEventListener('click', startGame);
 restartBtn.addEventListener('click', () => {
   gameOverOverlay.style.display = 'none';
   overlay.style.display = 'flex';
+  // Re-show difficulty selector
+  const diffSelector = document.getElementById('difficulty-selector');
+  if (diffSelector) diffSelector.style.display = 'flex';
 });
+
+// ── Difficulty selector init ───────────────────────────────────────────────
+function initDifficultySelector() {
+  const selector = document.getElementById('difficulty-selector');
+  if (!selector) return;
+  const buttons = selector.querySelectorAll('[data-difficulty]');
+  buttons.forEach(btn => {
+    if (btn.dataset.difficulty === selectedDifficulty) btn.classList.add('diff-active');
+    btn.addEventListener('click', () => {
+      selectedDifficulty = btn.dataset.difficulty;
+      localStorage.setItem('pong-difficulty', selectedDifficulty);
+      buttons.forEach(b => b.classList.remove('diff-active'));
+      btn.classList.add('diff-active');
+    });
+  });
+}
+initDifficultySelector();

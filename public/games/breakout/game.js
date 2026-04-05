@@ -10,6 +10,16 @@
 const CANVAS_W = 700;
 const CANVAS_H = 520;
 
+// ── Difficulty ────────────────────────────────────────────────────────────
+const DIFFICULTY_CONFIG = {
+  easy:   { label: 'EASY',   ballSpeed: 3.5, ballSpeedInc: 0.2, paddleWidth: 120, maxLives: 5 },
+  normal: { label: 'NORMAL', ballSpeed: 4.5, ballSpeedInc: 0.35, paddleWidth: 100, maxLives: 3 },
+  hard:   { label: 'HARD',   ballSpeed: 5.5, ballSpeedInc: 0.5,  paddleWidth: 80,  maxLives: 2 },
+};
+let currentDifficulty = localStorage.getItem('breakout-difficulty') || 'normal';
+let activeDiff = DIFFICULTY_CONFIG[currentDifficulty];
+function setDifficulty(d) { currentDifficulty = d; activeDiff = DIFFICULTY_CONFIG[d]; localStorage.setItem('breakout-difficulty', d); }
+
 // ── Colors ─────────────────────────────────────────────────────────────────
 const PINK = '#ff3366';
 const ROW_COLORS = ['#ff3366', '#ff6600', '#ffcc00', '#33ff66', '#3399ff', '#cc33ff', '#ff66cc'];
@@ -18,11 +28,8 @@ const TOUGH_DIM = 0.45; // opacity multiplier after first hit
 // ── Layout constants ───────────────────────────────────────────────────────
 const PADDLE_Y_OFFSET = 40; // distance from bottom
 const PADDLE_HEIGHT = 14;
-const PADDLE_BASE_WIDTH = 100;
 const PADDLE_SPEED = 7;
 const BALL_RADIUS = 6;
-const BALL_BASE_SPEED = 4.5;
-const BALL_SPEED_INCREMENT = 0.35; // per level
 
 const BRICK_ROWS = 6;
 const BRICK_COLS = 10;
@@ -32,7 +39,6 @@ const BRICK_PADDING = 4;
 const BRICK_OFFSET_TOP = 50;
 const BRICK_OFFSET_LEFT = (CANVAS_W - (BRICK_COLS * (BRICK_WIDTH + BRICK_PADDING) - BRICK_PADDING)) / 2;
 
-const MAX_LIVES = 3;
 const POWERUP_DROP_CHANCE = 0.20;
 const POWERUP_FALL_SPEED = 2;
 const POWERUP_SIZE = 18;
@@ -59,7 +65,7 @@ const levelEl = document.getElementById('level');
 
 let gameState = 'idle'; // idle | playing | paused | gameover
 let score = 0;
-let lives = MAX_LIVES;
+let lives = activeDiff.maxLives;
 let level = 1;
 let paddle, balls, bricks, powerUps;
 let widePaddleTimer = 0;
@@ -71,16 +77,16 @@ let touchPaddleStartX = null;
 // ── Paddle ─────────────────────────────────────────────────────────────────
 function createPaddle() {
   return {
-    x: CANVAS_W / 2 - PADDLE_BASE_WIDTH / 2,
+    x: CANVAS_W / 2 - activeDiff.paddleWidth / 2,
     y: CANVAS_H - PADDLE_Y_OFFSET,
-    width: PADDLE_BASE_WIDTH,
+    width: activeDiff.paddleWidth,
     height: PADDLE_HEIGHT,
   };
 }
 
 // ── Ball ───────────────────────────────────────────────────────────────────
 function createBall(x, y, dx, dy) {
-  const speed = BALL_BASE_SPEED + BALL_SPEED_INCREMENT * (level - 1);
+  const speed = activeDiff.ballSpeed + activeDiff.ballSpeedInc * (level - 1);
   return {
     x: x,
     y: y,
@@ -142,7 +148,7 @@ function spawnPowerUp(x, y) {
 // ── Init / Reset ───────────────────────────────────────────────────────────
 function initGame() {
   score = 0;
-  lives = MAX_LIVES;
+  lives = activeDiff.maxLives;
   level = 1;
   widePaddleTimer = 0;
   paddle = createPaddle();
@@ -155,7 +161,7 @@ function initGame() {
 function nextLevel() {
   level++;
   widePaddleTimer = 0;
-  paddle.width = PADDLE_BASE_WIDTH;
+  paddle.width = activeDiff.paddleWidth;
   paddle.x = CANVAS_W / 2 - paddle.width / 2;
   balls = [createBall(paddle.x + paddle.width / 2, paddle.y - BALL_RADIUS)];
   bricks = generateBricks();
@@ -167,7 +173,7 @@ function updateHUD() {
   scoreEl.textContent = score;
   levelEl.textContent = level;
   let starStr = '';
-  for (let i = 0; i < MAX_LIVES; i++) {
+  for (let i = 0; i < activeDiff.maxLives; i++) {
     starStr += i < lives ? '\u2733' : '\u2606';
   }
   livesEl.textContent = starStr;
@@ -253,7 +259,7 @@ function update(dt) {
     widePaddleTimer -= dt;
     if (widePaddleTimer <= 0) {
       widePaddleTimer = 0;
-      paddle.width = PADDLE_BASE_WIDTH;
+      paddle.width = activeDiff.paddleWidth;
       // Clamp paddle position
       if (paddle.x + paddle.width > CANVAS_W) paddle.x = CANVAS_W - paddle.width;
     }
@@ -396,7 +402,7 @@ function update(dt) {
 
 function applyPowerUp(kind) {
   if (kind === PU_WIDE) {
-    paddle.width = PADDLE_BASE_WIDTH * WIDE_PADDLE_MULT;
+    paddle.width = activeDiff.paddleWidth * WIDE_PADDLE_MULT;
     if (paddle.x + paddle.width > CANVAS_W) paddle.x = CANVAS_W - paddle.width;
     widePaddleTimer = WIDE_PADDLE_DURATION;
   } else if (kind === PU_MULTI) {
@@ -428,10 +434,12 @@ async function gameOver() {
   overlay.querySelector('p').innerHTML =
     'Final Score: <strong>' + score + '</strong><br>Level Reached: ' + level;
   startBtn.textContent = 'PLAY AGAIN';
+  const diffSel = document.getElementById('difficulty-selector');
+  if (diffSel) diffSel.style.display = '';
 
   // Submit score
   try {
-    await api.post('/api/scores/breakout', { score });
+    await api.post('/api/scores/breakout', { score, difficulty: currentDifficulty });
   } catch (err) {
     console.error('Score submission failed:', err);
   }
@@ -597,10 +605,26 @@ startBtn.addEventListener('click', () => {
     initGame();
   }
   overlay.style.display = 'none';
+  const diffSel = document.getElementById('difficulty-selector');
+  if (diffSel) diffSel.style.display = 'none';
   gameState = 'playing';
   lastTime = 0;
   requestAnimationFrame(gameLoop);
 });
+
+// ── Difficulty selector ────────────────────────────────────────────────────
+function initDifficultySelector() {
+  const btns = document.querySelectorAll('#difficulty-selector .diff-btn');
+  btns.forEach(btn => {
+    if (btn.dataset.diff === currentDifficulty) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      setDifficulty(btn.dataset.diff);
+    });
+  });
+}
+initDifficultySelector();
 
 // Initial draw
 initGame();

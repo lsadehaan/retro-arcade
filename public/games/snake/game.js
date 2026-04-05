@@ -57,6 +57,15 @@ const MAX_FOOD_ON_SCREEN = 2;
 // Base tick interval (ms between moves)
 const BASE_INTERVAL = 150;
 
+const DIFFICULTY_CONFIG = {
+  easy:   { label: 'EASY',   baseInterval: 200, trailSolidMs: 4000, wallFreq: 15 },
+  normal: { label: 'NORMAL', baseInterval: 150, trailSolidMs: 6000, wallFreq: 10 },
+  hard:   { label: 'HARD',   baseInterval: 120, trailSolidMs: 8000, wallFreq: 7 },
+};
+let currentDifficulty = localStorage.getItem('snake-difficulty') || 'normal';
+let activeDiff = DIFFICULTY_CONFIG[currentDifficulty];
+function setDifficulty(d) { currentDifficulty = d; activeDiff = DIFFICULTY_CONFIG[d]; localStorage.setItem('snake-difficulty', d); }
+
 class NeonGrowth {
   constructor(canvas, overlay, scoreEl, highScoreEl, segmentsEl) {
     this.canvas = canvas;
@@ -203,6 +212,8 @@ class NeonGrowth {
   // ── Main game loop ─────────────────────────────────────────────────────
 
   start() {
+    const ds = typeof document !== 'undefined' && document.getElementById ? document.getElementById('difficulty-selector') : null;
+    if (ds) ds.style.display = 'none';
     this._reset();
     this.running = true;
     this.gameOverFlag = false;
@@ -212,8 +223,8 @@ class NeonGrowth {
   }
 
   _currentInterval() {
-    if (performance.now() < this.speedBoostExpiry) return BASE_INTERVAL / 1.3;
-    return BASE_INTERVAL;
+    if (performance.now() < this.speedBoostExpiry) return activeDiff.baseInterval / 1.3;
+    return activeDiff.baseInterval;
   }
 
   _loop(ts) {
@@ -267,10 +278,10 @@ class NeonGrowth {
       return;
     }
 
-    // Collision: solid trail (born within TRAIL_SOLID_MS)
+    // Collision: solid trail (born within activeDiff.trailSolidMs)
     const now = performance.now();
     const solidTrailHit = this.trail.some(
-      (t) => t.x === nx && t.y === ny && now - t.born < TRAIL_SOLID_MS
+      (t) => t.x === nx && t.y === ny && now - t.born < activeDiff.trailSolidMs
     );
     if (solidTrailHit) {
       this._endGame();
@@ -312,8 +323,9 @@ class NeonGrowth {
       this.segmentCount = this.snake.length + this._growQueue;
       this._updateHUD();
 
-      // Wall generation every 10 segments
-      const threshold = Math.floor(this.segmentCount / 10) * 10;
+      // Wall generation every N segments (based on difficulty)
+      const wf = activeDiff.wallFreq;
+      const threshold = Math.floor(this.segmentCount / wf) * wf;
       if (threshold > 0 && threshold > this._lastWallThreshold) {
         this._lastWallThreshold = threshold;
         this._spawnWalls();
@@ -339,7 +351,7 @@ class NeonGrowth {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ score: this.score }),
+      body: JSON.stringify({ score: this.score, difficulty: currentDifficulty }),
     })
       .then(async (res) => {
         if (res.status === 401) {
@@ -394,6 +406,22 @@ class NeonGrowth {
 
     ov.appendChild(h2);
     ov.appendChild(p);
+
+    // Show difficulty selector on game over
+    const ds = typeof document !== 'undefined' && document.getElementById ? document.getElementById('difficulty-selector') : null;
+    if (ds) {
+      const clone = ds.cloneNode(true);
+      clone.style.display = 'flex';
+      clone.querySelectorAll('.diff-btn').forEach(b => {
+        b.classList.toggle('diff-active', b.dataset.difficulty === currentDifficulty);
+        b.addEventListener('click', () => {
+          setDifficulty(b.dataset.difficulty);
+          clone.querySelectorAll('.diff-btn').forEach(x => x.classList.toggle('diff-active', x.dataset.difficulty === currentDifficulty));
+        });
+      });
+      ov.appendChild(clone);
+    }
+
     ov.appendChild(btn);
     ov.style.display = 'flex';
   }
@@ -438,7 +466,7 @@ class NeonGrowth {
       const age = now - seg.born;
       if (age >= TRAIL_FADE_MS) continue;
       const alpha = 1 - age / TRAIL_FADE_MS;
-      const solid = age < TRAIL_SOLID_MS;
+      const solid = age < activeDiff.trailSolidMs;
 
       ctx.save();
       ctx.globalAlpha = alpha * 0.6;
@@ -571,3 +599,16 @@ document.getElementById('start-btn').addEventListener('click', () => {
   overlay.style.display = 'none';
   game.start();
 });
+
+function initDifficultySelector() {
+  const ds = typeof document !== 'undefined' && document.getElementById ? document.getElementById('difficulty-selector') : null;
+  if (!ds) return;
+  ds.querySelectorAll('.diff-btn').forEach(btn => {
+    btn.classList.toggle('diff-active', btn.dataset.difficulty === currentDifficulty);
+    btn.addEventListener('click', () => {
+      setDifficulty(btn.dataset.difficulty);
+      ds.querySelectorAll('.diff-btn').forEach(b => b.classList.toggle('diff-active', b.dataset.difficulty === currentDifficulty));
+    });
+  });
+}
+initDifficultySelector();

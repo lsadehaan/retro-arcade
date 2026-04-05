@@ -37,6 +37,16 @@ const POWERUP_COLORS = {
   shield: '#fff',
 };
 
+// ── Difficulty settings ─────────────────────────────────────────────────────
+const DIFFICULTY_CONFIG = {
+  easy:   { label: 'EASY',   enemySpeedMult: 0.7, maxLives: 4, shieldRegen: 8, waveSpeedMult: 0.7 },
+  normal: { label: 'NORMAL', enemySpeedMult: 1.0, maxLives: 3, shieldRegen: 5, waveSpeedMult: 1.0 },
+  hard:   { label: 'HARD',   enemySpeedMult: 1.3, maxLives: 2, shieldRegen: 3, waveSpeedMult: 1.3 },
+};
+let currentDifficulty = localStorage.getItem('spaceinvaders-difficulty') || 'normal';
+let activeDiff = DIFFICULTY_CONFIG[currentDifficulty];
+function setDifficulty(d) { currentDifficulty = d; activeDiff = DIFFICULTY_CONFIG[d]; localStorage.setItem('spaceinvaders-difficulty', d); }
+
 // ── Game constants ──────────────────────────────────────────────────────────
 const PLAYER_W = 30;
 const PLAYER_H = 20;
@@ -240,7 +250,7 @@ class GameEngine {
     // Player state
     this.playerX = this.width / 2;
     this.playerY = this.height - 40;
-    this.lives = MAX_LIVES;
+    this.lives = activeDiff.maxLives;
     this.shield = MAX_SHIELD;
     this.score = 0;
     this.wave = 0;
@@ -274,7 +284,7 @@ class GameEngine {
   _startNextWave() {
     this.wave++;
     const isBossWave = this.wave % BOSS_WAVE_INTERVAL === 0;
-    const waveSpeed = 1 + this.wave * 0.05;
+    const waveSpeed = (1 + this.wave * 0.05) * activeDiff.waveSpeedMult;
     const enemyCount = Math.min(5 + this.wave * 2, 30);
 
     if (isBossWave) {
@@ -308,7 +318,7 @@ class GameEngine {
         const typeRoll = Math.random();
         const type = typeRoll < 0.5 ? 'scout' : typeRoll < 0.8 ? 'drone' : 'heavy';
         const def = ENEMY_TYPES[type];
-        const angSpeed = (0.5 + Math.random() * 0.8) * waveSpeed * def.speed;
+        const angSpeed = (0.5 + Math.random() * 0.8) * waveSpeed * def.speed * activeDiff.enemySpeedMult;
 
         this.enemies.push(new OrbitalEnemy({
           type,
@@ -559,7 +569,7 @@ class GameEngine {
 
   _regenerateShield(dt) {
     if (this.shield < MAX_SHIELD) {
-      this.shield = Math.min(MAX_SHIELD, this.shield + SHIELD_REGEN_PER_SEC * dt);
+      this.shield = Math.min(MAX_SHIELD, this.shield + activeDiff.shieldRegen * dt);
     }
   }
 
@@ -863,6 +873,8 @@ class AsteroidDefenseRenderer {
   }
 
   start() {
+    const ds = document.getElementById('difficulty-selector');
+    if (ds) ds.style.display = 'none';
     this.engine.reset();
     this._running = true;
     this._lastTime = performance.now();
@@ -904,7 +916,7 @@ class AsteroidDefenseRenderer {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ score: state.score }),
+      body: JSON.stringify({ score: state.score, difficulty: currentDifficulty }),
     })
       .then(async (res) => {
         if (res.status === 401) {
@@ -950,6 +962,22 @@ class AsteroidDefenseRenderer {
     const p = document.createElement('p');
     p.textContent = `Score: ${state.score}  |  Wave: ${state.wave}  |  Best: ${this.highScore}`;
 
+    // Re-create difficulty selector in overlay
+    const diffDiv = document.createElement('div');
+    diffDiv.id = 'difficulty-selector';
+    ['easy', 'normal', 'hard'].forEach(d => {
+      const b = document.createElement('button');
+      b.className = 'diff-btn' + (d === currentDifficulty ? ' diff-active' : '');
+      b.dataset.difficulty = d;
+      b.textContent = d.charAt(0).toUpperCase() + d.slice(1);
+      b.addEventListener('click', () => {
+        setDifficulty(d);
+        diffDiv.querySelectorAll('.diff-btn').forEach(x => x.classList.remove('diff-active'));
+        b.classList.add('diff-active');
+      });
+      diffDiv.appendChild(b);
+    });
+
     const btn = document.createElement('button');
     btn.textContent = 'PLAY AGAIN';
     btn.addEventListener('click', () => {
@@ -958,6 +986,7 @@ class AsteroidDefenseRenderer {
 
     ov.appendChild(h2);
     ov.appendChild(p);
+    ov.appendChild(diffDiv);
     ov.appendChild(btn);
     ov.style.display = 'flex';
   }
@@ -1230,6 +1259,27 @@ const renderer = new AsteroidDefenseRenderer(canvas, overlay, hud);
 startBtn.addEventListener('click', () => {
   renderer.start();
 });
+
+// ── Difficulty selector ────────────────────────────────────────────────────
+function initDifficultySelector() {
+  const selector = document.getElementById('difficulty-selector');
+  if (!selector) return;
+
+  const buttons = selector.querySelectorAll('[data-difficulty]');
+  buttons.forEach(btn => {
+    if (btn.dataset.difficulty === currentDifficulty) {
+      btn.classList.add('diff-active');
+    }
+
+    btn.addEventListener('click', () => {
+      setDifficulty(btn.dataset.difficulty);
+      buttons.forEach(b => b.classList.remove('diff-active'));
+      btn.classList.add('diff-active');
+    });
+  });
+}
+
+initDifficultySelector();
 
 // Export for testing (Node.js environment detection)
 if (typeof module !== 'undefined' && module.exports) {

@@ -90,6 +90,14 @@
     }
     #item-legend span { color: #fff; }
 
+    #difficulty-selector { display: flex; gap: 8px; justify-content: center; margin-top: 4px; }
+    .diff-btn { font-family: var(--font-pixel); font-size: 0.45rem; padding: 6px 14px; border: 2px solid #555; background: transparent; color: #888; cursor: pointer; letter-spacing: 0.08em; text-transform: uppercase; transition: all 0.15s; }
+    .diff-btn:hover { border-color: #aaa; color: #ccc; }
+    .diff-btn.diff-active { border-color: currentColor; text-shadow: 0 0 6px currentColor; box-shadow: 0 0 8px currentColor; }
+    .diff-btn[data-difficulty="easy"].diff-active { color: #39ff14; border-color: #39ff14; }
+    .diff-btn[data-difficulty="normal"].diff-active { color: #ffff00; border-color: #ffff00; }
+    .diff-btn[data-difficulty="hard"].diff-active { color: #ff3333; border-color: #ff3333; }
+
     /* Leaderboard panel */
     .game-leaderboard {
       background: var(--surface);
@@ -161,6 +169,11 @@
             <div>&#11088; Score Bomb 2x 10s</div>
             <div>&#127744; Warp Berry (teleport)</div>
           </div>
+          <div id="difficulty-selector">
+            <button class="diff-btn" data-difficulty="easy">Easy</button>
+            <button class="diff-btn" data-difficulty="normal">Normal</button>
+            <button class="diff-btn" data-difficulty="hard">Hard</button>
+          </div>
           <button id="start-btn">START GAME</button>
         </div>
       </div>
@@ -228,7 +241,14 @@
           const scoreSpan = document.createElement('span');
           scoreSpan.className = 'lb-score';
           scoreSpan.textContent = s.score.toLocaleString();
-          li.append(rankSpan, nameSpan, scoreSpan);
+          li.append(rankSpan, nameSpan);
+          if (s.difficulty && s.difficulty !== 'normal') {
+            const tag = document.createElement('span');
+            tag.textContent = s.difficulty === 'easy' ? 'E' : 'H';
+            tag.style.cssText = 'font-size:0.65rem;margin-right:4px;color:' + (s.difficulty === 'easy' ? '#39ff14' : '#ff3333');
+            li.appendChild(tag);
+          }
+          li.appendChild(scoreSpan);
           list.appendChild(li);
         }
       } catch (err) {
