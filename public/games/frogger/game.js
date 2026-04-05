@@ -425,12 +425,12 @@ function checkCollisions() {
   }
 
   // River lanes — must be on a log or die
-  // Frog hitbox shrinks on easy (easier to stay on logs), grows on hard
+  // Frog hitbox grows on easy (easier to land on logs), shrinks on hard
   if (frogRow >= ROW_RIVER_MIN && frogRow <= ROW_RIVER_MAX) {
     const lane = getLane(frogRow);
     if (lane) {
       let onLog = false;
-      const logHitbox = frogHalfW / diff.hitboxMult;
+      const logHitbox = frogHalfW * diff.hitboxMult;
       for (const obj of lane.objects) {
         const objLeft = obj.x;
         const objRight = obj.x + obj.width;
