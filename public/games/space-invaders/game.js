@@ -758,9 +758,10 @@ class AsteroidDefenseRenderer {
           e.preventDefault();
           break;
       }
-      if (e.key === 'a' || e.key === 'A') {
+      if (e.key === 'q' || e.key === 'Q') {
         if (typeof autoFireEnabled !== 'undefined') {
           autoFireEnabled = !autoFireEnabled;
+          if (!autoFireEnabled) this.engine.keys.fire = false;
           const btn = document.getElementById('autofire-btn');
           if (btn) { btn.classList.toggle('active', autoFireEnabled); btn.textContent = autoFireEnabled ? 'AUTO*' : 'AUTO'; }
         }
@@ -900,8 +901,10 @@ class AsteroidDefenseRenderer {
     const dt = Math.min((ts - this._lastTime) / 1000, 0.05); // cap at 50ms
     this._lastTime = ts;
 
-    // Auto-fire: force fire key on each frame
-    if (typeof autoFireEnabled !== 'undefined' && autoFireEnabled) this.engine.keys.fire = true;
+    // Auto-fire: force fire key while enabled, clear on disable
+    if (typeof autoFireEnabled !== 'undefined' && autoFireEnabled) {
+      this.engine.keys.fire = true;
+    }
 
     this.engine.update(dt);
     this._draw();
