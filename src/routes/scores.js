@@ -2,6 +2,7 @@ import { db } from '../db.js';
 import { authenticate } from '../middleware/auth.js';
 
 const VALID_GAMES = ['pacmaze', 'neon-growth', 'space-invaders', 'frogger', 'pong', 'tetris', 'breakout', 'asteroids'];
+const VALID_DIFFICULTIES = ['easy', 'normal', 'hard'];
 const MAX_SCORE = 999999;
 const RATE_LIMIT_WINDOW_MS = 3 * 1000; // 3 seconds — prevents double-submit without blocking back-to-back games
 
@@ -38,10 +39,15 @@ async function scoresRoutes(fastify) {
       return reply.code(400).send({ error: `Invalid game. Must be one of: ${VALID_GAMES.join(', ')}` });
     }
 
-    const { score } = request.body ?? {};
+    const { score, difficulty } = request.body ?? {};
 
     if (score == null || !Number.isInteger(score) || score < 0 || score > MAX_SCORE) {
       return reply.code(400).send({ error: 'Score must be an integer between 0 and 999999' });
+    }
+
+    const diff = difficulty || 'normal';
+    if (!VALID_DIFFICULTIES.includes(diff)) {
+      return reply.code(400).send({ error: `Invalid difficulty. Must be one of: ${VALID_DIFFICULTIES.join(', ')}` });
     }
 
     const userId = request.user.id;
@@ -51,8 +57,8 @@ async function scoresRoutes(fastify) {
     }
 
     const row = db.prepare(
-      'INSERT INTO scores (user_id, game_id, score) VALUES (?, ?, ?) RETURNING id'
-    ).get(userId, game, score);
+      'INSERT INTO scores (user_id, game_id, score, difficulty) VALUES (?, ?, ?, ?) RETURNING id'
+    ).get(userId, game, score, diff);
 
     // Calculate current rank (position among all sessions for this game)
     const rankRow = db.prepare(`
@@ -73,7 +79,7 @@ async function scoresRoutes(fastify) {
     }
 
     const rows = db.prepare(`
-      SELECT u.username, s.score, s.created_at AS submitted_at
+      SELECT u.username, s.score, s.created_at AS submitted_at, s.difficulty
       FROM scores s
       JOIN users u ON u.id = s.user_id
       WHERE s.game_id = ?
@@ -86,6 +92,7 @@ async function scoresRoutes(fastify) {
       username: row.username,
       score: row.score,
       submitted_at: row.submitted_at,
+      difficulty: row.difficulty || 'normal',
     }));
 
     return reply.send(scores);
@@ -126,5 +133,5 @@ async function scoresRoutes(fastify) {
 }
 
 // Export for testing
-export { VALID_GAMES, lastSubmission };
+export { VALID_GAMES, VALID_DIFFICULTIES, lastSubmission };
 export default scoresRoutes;

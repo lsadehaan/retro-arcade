@@ -33,4 +33,11 @@ db.exec(`
   );
 `);
 
+// Additive migration: add difficulty column if it doesn't exist yet.
+// Default 'normal' preserves all existing scores as Normal difficulty.
+const cols = db.prepare("PRAGMA table_info(scores)").all();
+if (!cols.some(c => c.name === 'difficulty')) {
+  db.exec("ALTER TABLE scores ADD COLUMN difficulty TEXT NOT NULL DEFAULT 'normal'");
+}
+
 export { db };

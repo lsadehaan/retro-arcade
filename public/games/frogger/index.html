@@ -19,6 +19,7 @@
       flex-direction: column;
       align-items: center;
       user-select: none;
+      -webkit-user-select: none;
       max-width: 100%;
       overflow: hidden;
     }
@@ -42,13 +43,18 @@
       flex-wrap: wrap;
       justify-content: center;
     }
-    #canvas-wrapper { position: relative; max-width: 100%; }
+    #canvas-wrapper {
+      position: relative;
+      max-width: 100%;
+    }
     canvas {
       display: block;
       border: 2px solid #cc44ff;
       box-shadow: 0 0 20px #cc44ff, 0 0 40px #8000ff;
       max-width: 100%;
       height: auto;
+      touch-action: none;
+      -webkit-touch-callout: none;
     }
     #overlay {
       position: absolute;
@@ -92,6 +98,47 @@
     }
     #overlay button:hover { background: rgba(204,68,255,0.1); }
 
+    /* Difficulty selector */
+    #difficulty-selector {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 4px;
+    }
+    .diff-btn {
+      font-family: var(--font-pixel);
+      font-size: 0.45rem;
+      padding: 6px 14px;
+      border: 2px solid #555;
+      background: transparent;
+      color: #888;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: all 0.15s;
+    }
+    .diff-btn:hover {
+      border-color: #aaa;
+      color: #ccc;
+    }
+    .diff-btn.diff-active {
+      border-color: currentColor;
+      text-shadow: 0 0 6px currentColor;
+      box-shadow: 0 0 8px currentColor;
+    }
+    .diff-btn[data-difficulty="easy"].diff-active {
+      color: #39ff14;
+      border-color: #39ff14;
+    }
+    .diff-btn[data-difficulty="normal"].diff-active {
+      color: #ffff00;
+      border-color: #ffff00;
+    }
+    .diff-btn[data-difficulty="hard"].diff-active {
+      color: #ff3333;
+      border-color: #ff3333;
+    }
+
     /* Leaderboard panel */
     .game-leaderboard {
       background: var(--surface);
@@ -113,6 +160,7 @@
     .lb-list li {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       padding: 4px 0;
       border-bottom: 1px solid var(--border);
     }
@@ -120,6 +168,17 @@
     .lb-rank { color: var(--neon-cyan); min-width: 28px; }
     .lb-name { flex: 1; margin: 0 8px; }
     .lb-score { color: var(--neon-green); font-family: var(--font-mono); }
+    .lb-diff {
+      font-family: var(--font-pixel);
+      font-size: 0.35rem;
+      margin-left: 6px;
+      padding: 1px 4px;
+      border-radius: 2px;
+      text-transform: uppercase;
+    }
+    .lb-diff-easy { color: #39ff14; }
+    .lb-diff-normal { color: #ffff00; }
+    .lb-diff-hard { color: #ff3333; }
     .lb-empty { color: #555; font-size: 0.75rem; text-align: center; padding: 12px 0; }
 
     @media (max-width: 900px) {
@@ -148,6 +207,10 @@
       #overlay button {
         font-size: 0.85rem;
         padding: 0.35rem 1.2rem;
+      }
+      .diff-btn {
+        font-size: 0.38rem;
+        padding: 5px 10px;
       }
     }
   </style>
@@ -183,19 +246,24 @@
         <div id="overlay">
           <h2>NEON HOPPER</h2>
           <p>
-            Arrow keys / WASD / D-pad — Hop<br>
+            Arrow keys / WASD / D-pad / Swipe — Hop<br>
             Cross the road, ride the logs, reach the safe zones.<br>
             Fill all 5 to advance. Don't croak!
           </p>
+          <div id="difficulty-selector">
+            <button class="diff-btn" data-difficulty="easy">Easy</button>
+            <button class="diff-btn" data-difficulty="normal">Normal</button>
+            <button class="diff-btn" data-difficulty="hard">Hard</button>
+          </div>
           <button id="start-btn">START GAME</button>
         </div>
       </div>
       <div class="touch-controls" id="touch-controls">
         <div class="touch-controls-row">
-          <button class="dpad-btn" data-key="ArrowLeft" style="width:64px;height:64px;font-size:1.6rem;">&#9664;</button>
-          <button class="dpad-btn" data-key="ArrowUp" style="width:64px;height:64px;font-size:1.6rem;">&#9650;</button>
-          <button class="dpad-btn" data-key="ArrowDown" style="width:64px;height:64px;font-size:1.6rem;">&#9660;</button>
-          <button class="dpad-btn" data-key="ArrowRight" style="width:64px;height:64px;font-size:1.6rem;">&#9654;</button>
+          <button class="dpad-btn" data-key="ArrowLeft" style="width:72px;height:72px;font-size:1.8rem;">&#9664;</button>
+          <button class="dpad-btn" data-key="ArrowUp" style="width:72px;height:72px;font-size:1.8rem;">&#9650;</button>
+          <button class="dpad-btn" data-key="ArrowDown" style="width:72px;height:72px;font-size:1.8rem;">&#9660;</button>
+          <button class="dpad-btn" data-key="ArrowRight" style="width:72px;height:72px;font-size:1.8rem;">&#9654;</button>
         </div>
       </div>
     </div>
@@ -251,7 +319,17 @@
           const scoreSpan = document.createElement('span');
           scoreSpan.className = 'lb-score';
           scoreSpan.textContent = s.score.toLocaleString();
+
           li.append(rankSpan, nameSpan, scoreSpan);
+
+          // Show difficulty tag
+          if (s.difficulty && s.difficulty !== 'normal') {
+            const diffSpan = document.createElement('span');
+            diffSpan.className = 'lb-diff lb-diff-' + s.difficulty;
+            diffSpan.textContent = s.difficulty === 'easy' ? 'E' : 'H';
+            li.appendChild(diffSpan);
+          }
+
           list.appendChild(li);
         }
       } catch (err) {

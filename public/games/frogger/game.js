@@ -46,10 +46,35 @@ const COLOR_LILYPAD = '#22aa44';
 const VEHICLE_COLORS = ['#ff3333', '#ff8800', '#ffff00', '#00ccff', '#ff44aa'];
 
 const MAX_LIVES = 3;
-const BASE_TIMER = 30; // seconds
 const POINTS_PER_ROW = 10;
 const POINTS_SAFE_ZONE = 50;
 const TIME_BONUS_MULT = 5;
+
+// ── Difficulty config ───────────────────────────────────────────────────────
+
+const DIFFICULTY_CONFIG = {
+  easy:   { label: 'EASY',   speedMult: 0.7, hitboxMult: 1.4, baseTimer: 40 },
+  normal: { label: 'NORMAL', speedMult: 1.0, hitboxMult: 1.0, baseTimer: 30 },
+  hard:   { label: 'HARD',   speedMult: 1.4, hitboxMult: 0.7, baseTimer: 20 },
+};
+
+let currentDifficulty = localStorage.getItem('hopper-difficulty') || 'normal';
+// Cached config — updated when difficulty changes, avoids per-frame lookups
+let activeDiff = DIFFICULTY_CONFIG[currentDifficulty];
+
+function setDifficulty(diff) {
+  currentDifficulty = diff;
+  activeDiff = DIFFICULTY_CONFIG[diff];
+  localStorage.setItem('hopper-difficulty', diff);
+}
+
+// ── Haptic feedback ────────────────────────────────────────────────────────
+
+function hapticPulse(ms) {
+  if (navigator.vibrate) {
+    navigator.vibrate(ms);
+  }
+}
 
 // ── Canvas & state ──────────────────────────────────────────────────────────
 
@@ -67,7 +92,7 @@ let gameState = 'idle'; // idle | playing | dead | gameover
 let score = 0;
 let lives = MAX_LIVES;
 let level = 1;
-let timer = BASE_TIMER;
+let timer = 30;
 let lastTimestamp = 0;
 let highestRow = 0; // tracks furthest row this life (for forward-only scoring)
 
@@ -101,7 +126,8 @@ class Lane {
 
 function generateLanes(lvl) {
   const result = [];
-  const speedMult = 1 + (lvl - 1) * 0.15;
+  const diff = activeDiff;
+  const speedMult = (1 + (lvl - 1) * 0.15) * diff.speedMult;
 
   // Road lanes (rows 1-5)
   const roadSpeeds = [60, 80, 50, 90, 70];
@@ -171,7 +197,7 @@ function initLevel() {
   lanes = generateLanes(level);
   safeSlots = new Array(SAFE_SLOT_COUNT).fill(false);
   resetFrog();
-  timer = BASE_TIMER;
+  timer = activeDiff.baseTimer;
 }
 
 function startGame() {
@@ -189,16 +215,22 @@ function startGame() {
 function showGameOver() {
   gameState = 'gameover';
   overlay.querySelector('h2').textContent = 'GAME OVER';
+  const diffLabel = activeDiff.label;
   overlay.querySelector('p').innerHTML =
     'Final Score: ' + score.toLocaleString() + '<br>Level: ' + level +
+    '<br>Difficulty: ' + diffLabel +
     '<br><br>Press START to try again';
   startBtn.textContent = 'PLAY AGAIN';
   overlay.style.display = 'flex';
+  // Re-show difficulty selector
+  const diffSelector = document.getElementById('difficulty-selector');
+  if (diffSelector) diffSelector.style.display = 'flex';
   submitScore();
 }
 
 function die() {
   lives--;
+  hapticPulse(150); // longer vibration on death
   updateHUD();
   if (lives <= 0) {
     showGameOver();
@@ -209,7 +241,7 @@ function die() {
   setTimeout(() => {
     if (gameState === 'dead') {
       resetFrog();
-      timer = BASE_TIMER;
+      timer = activeDiff.baseTimer;
       highestRow = 0;
       gameState = 'playing';
     }
@@ -264,12 +296,56 @@ function handleHop(key) {
   frogRow = newRow;
   frogCol = newCol;
 
+  hapticPulse(20); // short pulse on hop
+
   // Forward progress scoring
   if (frogRow > highestRow) {
     score += POINTS_PER_ROW * (frogRow - highestRow);
     highestRow = frogRow;
   }
 }
+
+// ── Swipe detection ────────────────────────────────────────────────────────
+
+(function initSwipeDetection() {
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchStartTime = 0;
+  const MIN_SWIPE_DIST = 30;
+  const MAX_SWIPE_TIME = 400; // ms
+
+  canvas.addEventListener('touchstart', (e) => {
+    if (gameState !== 'playing') return;
+    const t = e.touches[0];
+    touchStartX = t.clientX;
+    touchStartY = t.clientY;
+    touchStartTime = Date.now();
+  }, { passive: true });
+
+  canvas.addEventListener('touchend', (e) => {
+    if (gameState !== 'playing') return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStartX;
+    const dy = t.clientY - touchStartY;
+    const elapsed = Date.now() - touchStartTime;
+
+    if (elapsed > MAX_SWIPE_TIME) return;
+
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+
+    if (absDx < MIN_SWIPE_DIST && absDy < MIN_SWIPE_DIST) return;
+
+    let key;
+    if (absDx > absDy) {
+      key = dx > 0 ? 'ArrowRight' : 'ArrowLeft';
+    } else {
+      key = dy > 0 ? 'ArrowDown' : 'ArrowUp';
+    }
+
+    handleHop(key);
+  }, { passive: true });
+})();
 
 // ── Collision detection ─────────────────────────────────────────────────────
 
@@ -289,6 +365,7 @@ function checkCollisions() {
   if (gameState !== 'playing') return;
 
   const frogX = getFrogPixelX();
+  const diff = activeDiff;
   const frogHalfW = CELL_W * 0.35;
 
   // Goal row — check if frog landed in a safe slot
@@ -317,7 +394,7 @@ function checkCollisions() {
 
         // Reset for next crossing
         resetFrog();
-        timer = BASE_TIMER;
+        timer = diff.baseTimer;
         highestRow = 0;
         updateHUD();
         return;
@@ -331,13 +408,15 @@ function checkCollisions() {
   }
 
   // Road lanes — vehicle collision
+  // Frog hitbox shrinks on easy (harder to get hit), grows on hard
   if (frogRow >= ROW_ROAD_MIN && frogRow <= ROW_ROAD_MAX) {
     const lane = getLane(frogRow);
     if (lane) {
+      const vehicleHitbox = frogHalfW / diff.hitboxMult;
       for (const obj of lane.objects) {
         const objLeft = obj.x;
         const objRight = obj.x + obj.width;
-        if (frogX + frogHalfW > objLeft && frogX - frogHalfW < objRight) {
+        if (frogX + vehicleHitbox > objLeft && frogX - vehicleHitbox < objRight) {
           die();
           return;
         }
@@ -346,14 +425,16 @@ function checkCollisions() {
   }
 
   // River lanes — must be on a log or die
+  // Frog hitbox shrinks on easy (easier to stay on logs), grows on hard
   if (frogRow >= ROW_RIVER_MIN && frogRow <= ROW_RIVER_MAX) {
     const lane = getLane(frogRow);
     if (lane) {
       let onLog = false;
+      const logHitbox = frogHalfW / diff.hitboxMult;
       for (const obj of lane.objects) {
         const objLeft = obj.x;
         const objRight = obj.x + obj.width;
-        if (frogX + frogHalfW > objLeft && frogX - frogHalfW < objRight) {
+        if (frogX + logHitbox > objLeft && frogX - logHitbox < objRight) {
           onLog = true;
           break;
         }
@@ -611,11 +692,12 @@ function drawFrog() {
 }
 
 function drawTimerBar() {
+  const diff = activeDiff;
   const barWidth = CANVAS_W - 20;
   const barHeight = 4;
   const barX = 10;
   const barY = CANVAS_H - 8;
-  const fillRatio = Math.max(0, timer / BASE_TIMER);
+  const fillRatio = Math.max(0, timer / diff.baseTimer);
 
   ctx.fillStyle = 'rgba(255,255,255,0.1)';
   ctx.fillRect(barX, barY, barWidth, barHeight);
@@ -665,7 +747,10 @@ function gameLoop(timestamp) {
 async function submitScore() {
   if (score <= 0) return;
   try {
-    const res = await api.post('/api/scores/frogger', { score });
+    const res = await api.post('/api/scores/frogger', {
+      score,
+      difficulty: currentDifficulty,
+    });
     if (res && res.ok) {
       const data = await res.json();
       const rankMsg = data.rank ? ' (Rank #' + data.rank + ')' : '';
@@ -680,12 +765,37 @@ async function submitScore() {
   }
 }
 
+// ── Difficulty selector ────────────────────────────────────────────────────
+
+function initDifficultySelector() {
+  const selector = document.getElementById('difficulty-selector');
+  if (!selector) return;
+
+  const buttons = selector.querySelectorAll('[data-difficulty]');
+  buttons.forEach(btn => {
+    // Set initial active state
+    if (btn.dataset.difficulty === currentDifficulty) {
+      btn.classList.add('diff-active');
+    }
+
+    btn.addEventListener('click', () => {
+      setDifficulty(btn.dataset.difficulty);
+      buttons.forEach(b => b.classList.remove('diff-active'));
+      btn.classList.add('diff-active');
+    });
+  });
+}
+
 // ── Start button ────────────────────────────────────────────────────────────
 
 startBtn.addEventListener('click', () => {
+  // Hide difficulty selector during gameplay
+  const diffSelector = document.getElementById('difficulty-selector');
+  if (diffSelector) diffSelector.style.display = 'none';
   startGame();
 });
 
 // Initial render so canvas isn't blank
 initLevel();
 render();
+initDifficultySelector();
