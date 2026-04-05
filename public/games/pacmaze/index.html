@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <title>Pac-Maze Rush — Retro Arcade</title>
   <link rel="stylesheet" href="/css/main.css" />
@@ -21,6 +21,8 @@
       align-items: center;
       max-width: 100%;
       overflow-x: clip;
+      user-select: none;
+      -webkit-user-select: none;
     }
     .game-main h1 {
       color: #FFD700;
@@ -49,6 +51,8 @@
       box-shadow: 0 0 20px #1a1aff88;
       max-width: 100%;
       height: auto;
+      touch-action: none;
+      -webkit-touch-callout: none;
     }
     #overlay {
       position: absolute;

@@ -264,6 +264,7 @@ function checkScore() {
 
 // ── End match ───────────────────────────────────────────────────────────────
 async function endMatch(playerWon) {
+  if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(150);
   running = false;
   gameOverTitle.textContent = playerWon ? 'YOU WIN!' : 'YOU LOSE';
   gameOverTitle.style.color = playerWon ? '#0f0' : '#f44';
@@ -400,6 +401,26 @@ function draw() {
   ctx.fillRect(CANVAS_W - PADDLE_MARGIN - PADDLE_W, cpuY, PADDLE_W, PADDLE_H);
   ctx.shadowBlur = 0;
 }
+
+// Swipe detection for paddle movement
+(function() {
+  let touchStartY = 0;
+  let touchStartTime = 0;
+  canvas.addEventListener('touchstart', function(e) {
+    touchStartY = e.touches[0].clientY;
+    touchStartTime = Date.now();
+  }, { passive: true });
+  canvas.addEventListener('touchend', function(e) {
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Date.now() - touchStartTime > 400) return;
+    if (Math.abs(dy) < 30) return;
+    const key = dy > 0 ? 'ArrowDown' : 'ArrowUp';
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: key, bubbles: true }));
+    setTimeout(function() {
+      document.dispatchEvent(new KeyboardEvent('keyup', { key: key, bubbles: true }));
+    }, 50);
+  }, { passive: true });
+})();
 
 // ── Event listeners ─────────────────────────────────────────────────────────
 startBtn.addEventListener('click', startGame);

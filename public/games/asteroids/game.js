@@ -58,6 +58,35 @@ const scoreEl = document.getElementById('score');
 const livesEl = document.getElementById('lives');
 const waveEl = document.getElementById('wave');
 
+// Swipe detection for ship control
+(function() {
+  let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+  canvas.addEventListener('touchstart', function(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchStartTime = Date.now();
+  }, { passive: true });
+  canvas.addEventListener('touchend', function(e) {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Date.now() - touchStartTime > 400) return;
+    var absDx = Math.abs(dx), absDy = Math.abs(dy);
+    if (absDx < 30 && absDy < 30) return;
+    var key;
+    if (absDx > absDy) {
+      key = dx > 0 ? 'ArrowRight' : 'ArrowLeft';
+    } else if (dy < 0) {
+      key = 'ArrowUp';
+    } else {
+      return;
+    }
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: key, bubbles: true }));
+    setTimeout(function() {
+      document.dispatchEvent(new KeyboardEvent('keyup', { key: key, bubbles: true }));
+    }, 50);
+  }, { passive: true });
+})();
+
 let running = false;
 let gameOver = false;
 let score = 0;
@@ -563,6 +592,7 @@ function checkCollisions() {
 }
 
 function killShip() {
+  if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(150);
   spawnParticles(ship.x, ship.y, 20);
   lives--;
   updateLivesDisplay();

@@ -356,6 +356,7 @@ function update(dt) {
   // If no balls left, lose a life
   if (balls.length === 0) {
     lives--;
+    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(100);
     updateHUD();
     if (lives <= 0) {
       gameOver();
@@ -420,6 +421,7 @@ function applyPowerUp(kind) {
 
 // ── Game over ──────────────────────────────────────────────────────────────
 async function gameOver() {
+  if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(150);
   gameState = 'gameover';
   overlay.style.display = 'flex';
   overlay.querySelector('h2').textContent = 'GAME OVER';

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <title>Neon Growth — Retro Arcade</title>
   <link rel="stylesheet" href="/css/main.css" />
@@ -20,6 +20,7 @@
       flex-direction: column;
       align-items: center;
       user-select: none;
+      -webkit-user-select: none;
       max-width: 100%;
       overflow-x: clip;
     }
@@ -50,6 +51,8 @@
       box-shadow: 0 0 20px #0ff, 0 0 40px #0080ff;
       max-width: 100%;
       height: auto;
+      touch-action: none;
+      -webkit-touch-callout: none;
     }
     #overlay {
       position: absolute;
