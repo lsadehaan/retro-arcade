@@ -1,0 +1,37 @@
+# Fabrica deployment spec for retro-arcade
+# Source of truth. Fabrica reads this file on every deploy.
+# Secrets never live here — they live in Windmill vault under f/deploy/<project>/<env>/.
+#
+# Currently running on: staging-retro-arcade-40d01262 (49.13.48.80), under Superiority.
+# When Fabrica is first asked to deploy this project, it will provision a new
+# `staging-retro-arcade` server per the spec below. Coordinate the cutover
+# deliberately — do not trigger a Fabrica deploy without a plan to migrate
+# the Cloudflare tunnel and drain the old VPS.
+
+version: 1
+
+environments:
+  staging:
+    provider: hetzner
+    server:
+      name: staging-retro-arcade
+      type: cx23
+      image: ubuntu-24.04
+      location: fsn1
+      ssh_keys:
+        - a.dehaan@cerebrosphere.com
+        - agent-host
+    runtime:
+      node_version: "20"
+      build:
+        - npm ci --omit=dev
+      start: node src/server.js
+      port: 3000
+      env_file: .env.production
+    networking:
+      domain: staging-retro-arcade.freigen.com
+      health_check:
+        path: /
+        expected_status: 200
+        timeout_seconds: 10
+    strategy: in_place
