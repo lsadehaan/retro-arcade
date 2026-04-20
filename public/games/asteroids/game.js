@@ -1,5 +1,6 @@
 const CANVAS_W = 700;
 const CANVAS_H = 520;
+const FULL_CIRCLE = Math.PI * 2;
 
 const BASE_SHIP = {
   radius: 18,
@@ -34,9 +35,9 @@ const DIFFICULTY_CONFIG = {
 };
 
 const ASTEROID_SIZES = {
-  large: { radius: 46, points: 25, speed: 0.52, children: 'medium', utilityChance: 0.04, mineralCount: [2, 3] },
-  medium: { radius: 25, points: 55, speed: 0.86, children: 'small', utilityChance: 0.07, mineralCount: [1, 2] },
-  small: { radius: 13, points: 110, speed: 1.18, children: null, utilityChance: 0.1, mineralCount: [1, 2] },
+  large: { radius: 46, points: 25, speed: 0.52, children: 'medium', utilityChance: 0.04, mineralCount: [2, 3], drawSize: 96 },
+  medium: { radius: 28, points: 55, speed: 0.86, children: 'small', utilityChance: 0.07, mineralCount: [1, 2], drawSize: 64 },
+  small: { radius: 15, points: 110, speed: 1.18, children: null, utilityChance: 0.1, mineralCount: [1, 2], drawSize: 32 },
 };
 
 const MINERAL_TYPES = {
@@ -52,6 +53,25 @@ const UTILITY_DROPS = {
   overdrive: { label: 'Overdrive', color: '#a78bfa', glow: 'rgba(167, 139, 250, 0.45)' },
 };
 
+const PIXEL_STYLE = {
+  shipSize: 32,
+  ufoSize: 48,
+};
+
+const SPRITE_PATHS = {
+  ship: rangePaths('ship', 48),
+  thrust: rangePaths('thrust', 48),
+  asteroid: {
+    large: rangePaths('asteroid-large', 60),
+    medium: rangePaths('asteroid-medium', 40),
+    small: rangePaths('asteroid-small', 20),
+  },
+  explosion: rangePaths('explosion', 12),
+  shipExplosion: rangePaths('ship-explosion', 21),
+  ufo: rangePaths('ufo', 40),
+  shield: rangePaths('shield', 2),
+};
+
 let currentDifficulty = localStorage.getItem('asteroids-difficulty') || 'normal';
 let activeDiff = DIFFICULTY_CONFIG[currentDifficulty];
 
@@ -59,6 +79,46 @@ function setDifficulty(value) {
   currentDifficulty = value;
   activeDiff = DIFFICULTY_CONFIG[value];
   localStorage.setItem('asteroids-difficulty', value);
+}
+
+function rangePaths(group, count) {
+  return Array.from({ length: count }, (_, index) => `assets/${group}/${index}.png`);
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.decoding = 'async';
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error(`failed to load ${src}`));
+    image.src = src;
+  });
+}
+
+async function loadSpriteSets() {
+  const [ship, thrust, explosion, shipExplosion, ufo, shield] = await Promise.all([
+    Promise.all(SPRITE_PATHS.ship.map(loadImage)),
+    Promise.all(SPRITE_PATHS.thrust.map(loadImage)),
+    Promise.all(SPRITE_PATHS.explosion.map(loadImage)),
+    Promise.all(SPRITE_PATHS.shipExplosion.map(loadImage)),
+    Promise.all(SPRITE_PATHS.ufo.map(loadImage)),
+    Promise.all(SPRITE_PATHS.shield.map(loadImage)),
+  ]);
+  const [large, medium, small] = await Promise.all([
+    Promise.all(SPRITE_PATHS.asteroid.large.map(loadImage)),
+    Promise.all(SPRITE_PATHS.asteroid.medium.map(loadImage)),
+    Promise.all(SPRITE_PATHS.asteroid.small.map(loadImage)),
+  ]);
+
+  return {
+    ship,
+    thrust,
+    asteroid: { large, medium, small },
+    explosion,
+    shipExplosion,
+    ufo,
+    shield,
+  };
 }
 
 const canvas = document.getElementById('canvas');
@@ -80,6 +140,9 @@ const waveEl = document.getElementById('wave');
 const creditsEl = document.getElementById('credits');
 const cargoEl = document.getElementById('cargo');
 const loadoutEl = document.getElementById('loadout');
+
+ctx.imageSmoothingEnabled = false;
+canvas.style.imageRendering = 'pixelated';
 
 const keys = {};
 let autoFireEnabled = false;
@@ -107,9 +170,13 @@ let particles = [];
 let pickups = [];
 let ufo = null;
 let ufoBullets = [];
+let effects = [];
 let upgrades = createUpgradeState();
 let cargoInventory = createCargoInventory();
 let currentWaveSalvage = createWaveSalvage();
+let spriteAssets = null;
+let spritesReady = false;
+let spriteLoadError = null;
 
 const stars = createStarfield();
 const nebulae = createNebulae();
@@ -220,6 +287,46 @@ function formatThousands(value) {
   return value.toLocaleString();
 }
 
+function normalizeAngle(angle) {
+  return ((angle % FULL_CIRCLE) + FULL_CIRCLE) % FULL_CIRCLE;
+}
+
+function rotationFrame(angle, frameCount) {
+  return Math.round(normalizeAngle(angle + Math.PI / 2) / FULL_CIRCLE * frameCount) % frameCount;
+}
+
+function cycleFrame(elapsed, frameCount, frameDuration) {
+  return Math.floor(elapsed / frameDuration) % frameCount;
+}
+
+function drawCenteredSprite(image, x, y, width, height, alpha = 1) {
+  if (!image) return;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(
+    image,
+    Math.round(x - width / 2),
+    Math.round(y - height / 2),
+    width,
+    height
+  );
+  ctx.restore();
+}
+
+function addEffect(type, x, y, size) {
+  effects.push({ type, x, y, size, elapsed: 0 });
+}
+
+function updateEffects(dt) {
+  for (let i = effects.length - 1; i >= 0; i--) {
+    const effect = effects[i];
+    effect.elapsed += dt;
+    const ttl = effect.type === 'shield' ? 180 : effect.type === 'shipExplosion' ? 630 : 360;
+    if (effect.elapsed >= ttl) effects.splice(i, 1);
+  }
+}
+
 function getShipStats() {
   const engineMult = 1 + upgrades.engine * 0.09;
   const overdriveShots = shotBoostTimer > 0 ? 1 : 0;
@@ -299,9 +406,7 @@ function updateHud() {
 }
 
 function updateLivesDisplay() {
-  let hull = '';
-  for (let i = 0; i < lives; i++) hull += '\u2726';
-  livesEl.textContent = hull || '---';
+  livesEl.textContent = `1UP x${lives}`;
 }
 
 function chooseAsteroidCore(size) {
@@ -482,6 +587,7 @@ function destroyAsteroid(index) {
   const mineral = MINERAL_TYPES[asteroid.core];
 
   dropAsteroidRewards(asteroid);
+  addEffect('explosion', asteroid.x, asteroid.y, def.drawSize);
   spawnParticles(asteroid.x, asteroid.y, Math.floor(asteroid.radius / 2.8), {
     colors: ['#a3a3a3', '#d4d4d4', mineral.color],
     speedMin: 1.4,
@@ -797,6 +903,7 @@ function absorbHit(x, y) {
   ship.invulnerable = true;
   ship.invulnTimer = SHIELD_GRACE_TIME;
   ship.flickerTimer = 0;
+  addEffect('shield', x, y, 56);
   spawnParticles(x, y, 18, {
     colors: ['#60a5fa', '#a5f3fc', '#e0f2fe'],
     speedMin: 1.4,
@@ -811,6 +918,7 @@ function absorbHit(x, y) {
 function killShip() {
   if (!ship) return;
   if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(150);
+  addEffect('shipExplosion', ship.x, ship.y, 72);
   spawnParticles(ship.x, ship.y, 24, {
     colors: ['#f87171', '#fb7185', '#fecdd3', '#fbbf24'],
     speedMin: 1.8,
@@ -832,6 +940,7 @@ function killShip() {
 
 function destroyUfo() {
   if (!ufo) return;
+  addEffect('explosion', ufo.x, ufo.y, 72);
   spawnParticles(ufo.x, ufo.y, 18, {
     colors: ['#f472b6', '#fb7185', '#fde68a'],
     speedMin: 1.4,
@@ -1055,7 +1164,7 @@ function enterUpgradeShop() {
   overlayState = 'shop';
   overlay.style.display = 'flex';
   overlayTitle.textContent = 'UPGRADE DOCK';
-  overlayMessage.textContent = `Wave ${wave} secured. Spend carefully before launch; upgrades are incremental and stack over time.`;
+  overlayMessage.textContent = `Wave ${wave} secured. Bank salvage, buy upgrades, then launch the next sortie.`;
   overlaySummary.innerHTML = renderSalvageSummary();
   overlaySummary.hidden = false;
   overlayRank.hidden = true;
@@ -1074,6 +1183,7 @@ function closeOverlay() {
 }
 
 function startGame() {
+  if (!spritesReady) return;
   running = true;
   gameOver = false;
   shopOpen = false;
@@ -1093,6 +1203,7 @@ function startGame() {
   pickups = [];
   ufo = null;
   ufoBullets = [];
+  effects = [];
   ufoTimer = 0;
   nextUfoTime = rand(UFO_INTERVAL_MIN, UFO_INTERVAL_MAX);
   cargoInventory = createCargoInventory();
@@ -1101,7 +1212,7 @@ function startGame() {
   ship = createShip();
 
   overlayTitle.textContent = 'VOID DRIFTER';
-  overlayMessage.textContent = 'Slow launch. Short bursts. Clear rocks, gather salvage, and refit between waves.';
+  overlayMessage.textContent = 'Short bursts. Clear rocks, gather salvage, and rearm between waves.';
   difficultySelector.style.display = 'flex';
   startBtn.textContent = 'START GAME';
   updateHud();
@@ -1176,6 +1287,7 @@ function attemptPurchaseByKey(key) {
 
 function update(dt) {
   if (shopOpen || gameOver) {
+    updateEffects(dt);
     updateParticles(dt);
     updatePickups(dt);
     if (waveBannerTimer > 0) waveBannerTimer -= dt;
@@ -1191,6 +1303,7 @@ function update(dt) {
   updateShip(dt);
   updateBullets(dt);
   updateAsteroids(dt);
+  updateEffects(dt);
   updateParticles(dt);
   updatePickups(dt);
   updateUfo(dt);
@@ -1208,274 +1321,58 @@ function update(dt) {
 }
 
 function drawBackground() {
-  const time = performance.now() * 0.00022;
-  const sky = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
-  sky.addColorStop(0, '#050a18');
-  sky.addColorStop(0.45, '#030713');
-  sky.addColorStop(1, '#010206');
-  ctx.fillStyle = sky;
+  const time = performance.now() * 0.0022;
+  ctx.fillStyle = '#040608';
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
-  for (const nebula of nebulae) {
-    const pulse = 0.85 + Math.sin(time + nebula.phase) * 0.08;
-    const gradient = ctx.createRadialGradient(
-      nebula.x,
-      nebula.y,
-      nebula.radius * 0.1,
-      nebula.x,
-      nebula.y,
-      nebula.radius * pulse
-    );
-    gradient.addColorStop(0, nebula.color);
-    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+  ctx.fillStyle = 'rgba(27, 35, 48, 0.85)';
+  for (let y = 0; y < CANVAS_H; y += 8) {
+    ctx.fillRect(0, y, CANVAS_W, 1);
   }
 
   for (const star of stars) {
-    const alpha = star.alpha + Math.sin(time * star.drift * 8 + star.phase) * 0.12;
-    ctx.fillStyle = `rgba(255, 255, 255, ${clamp(alpha, 0.05, 0.75)})`;
-    ctx.beginPath();
-    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-    ctx.fill();
+    const alpha = star.alpha + Math.sin(time * star.drift + star.phase) * 0.18;
+    const size = star.radius > 1 ? 2 : 1;
+    ctx.fillStyle = applyAlpha('#f7f3d6', clamp(alpha, 0.08, 0.9));
+    ctx.fillRect(Math.round(star.x), Math.round(star.y), size, size);
   }
 }
 
 function drawAsteroids() {
   for (const asteroid of asteroids) {
-    const mineral = MINERAL_TYPES[asteroid.core];
-    ctx.save();
-    ctx.translate(asteroid.x, asteroid.y);
-    ctx.rotate(asteroid.rotAngle);
-
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.26)';
-    ctx.beginPath();
-    ctx.ellipse(asteroid.radius * 0.12, asteroid.radius * 0.18, asteroid.radius * 0.92, asteroid.radius * 0.72, asteroid.shadeOffset, 0, Math.PI * 2);
-    ctx.fill();
-
-    const fill = ctx.createRadialGradient(
-      -asteroid.radius * 0.3,
-      -asteroid.radius * 0.36,
-      asteroid.radius * 0.08,
-      0,
-      0,
-      asteroid.radius * 1.06
-    );
-    fill.addColorStop(0, '#9a9ca5');
-    fill.addColorStop(0.32, '#676d79');
-    fill.addColorStop(0.72, '#303742');
-    fill.addColorStop(1, '#141821');
-
-    ctx.beginPath();
-    ctx.moveTo(asteroid.shape[0].x, asteroid.shape[0].y);
-    for (let i = 1; i < asteroid.shape.length; i++) {
-      ctx.lineTo(asteroid.shape[i].x, asteroid.shape[i].y);
-    }
-    ctx.closePath();
-    ctx.fillStyle = fill;
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.42)';
-    ctx.shadowBlur = 18;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.lineWidth = 1.8;
-    ctx.strokeStyle = 'rgba(255, 244, 226, 0.22)';
-    ctx.stroke();
-
-    ctx.save();
-    ctx.clip();
-    const sheen = ctx.createLinearGradient(-asteroid.radius, -asteroid.radius, asteroid.radius, asteroid.radius);
-    sheen.addColorStop(0, 'rgba(255, 244, 225, 0.15)');
-    sheen.addColorStop(0.38, 'rgba(255, 255, 255, 0)');
-    sheen.addColorStop(1, 'rgba(10, 14, 22, 0.22)');
-    ctx.fillStyle = sheen;
-    ctx.fillRect(-asteroid.radius * 1.2, -asteroid.radius * 1.2, asteroid.radius * 2.4, asteroid.radius * 2.4);
-
-    ctx.fillStyle = 'rgba(11, 15, 21, 0.22)';
-    ctx.beginPath();
-    ctx.arc(asteroid.radius * 0.28, asteroid.radius * 0.22, asteroid.radius * 0.82, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-    ctx.lineWidth = asteroid.size === 'large' ? 2.2 : 1.5;
-    for (let i = -1; i <= 1; i++) {
-      ctx.beginPath();
-      ctx.arc(-asteroid.radius * 0.2, -asteroid.radius * 0.12, asteroid.radius * (0.38 + i * 0.08), Math.PI * 1.1, Math.PI * 1.95);
-      ctx.stroke();
-    }
-    ctx.restore();
-
-    ctx.strokeStyle = mineral.color;
-    ctx.shadowColor = mineral.glow;
-    ctx.shadowBlur = 6;
-    ctx.lineWidth = asteroid.size === 'large' ? 1.7 : 1.3;
-    for (const vein of asteroid.veins) {
-      ctx.beginPath();
-      ctx.moveTo(vein.x1, vein.y1);
-      ctx.lineTo(vein.x2, vein.y2);
-      ctx.stroke();
-    }
-    ctx.shadowBlur = 0;
-
-    for (const crater of asteroid.craters) {
-      ctx.beginPath();
-      ctx.arc(crater.x, crater.y, crater.r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.48)';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-
-    ctx.restore();
+    const frames = spriteAssets?.asteroid?.[asteroid.size];
+    const frame = frames?.[Math.round(normalizeAngle(asteroid.rotAngle) / FULL_CIRCLE * frames.length) % frames.length];
+    drawCenteredSprite(frame, asteroid.x, asteroid.y, ASTEROID_SIZES[asteroid.size].drawSize, ASTEROID_SIZES[asteroid.size].drawSize);
   }
 }
 
 function drawShip() {
-  if (!ship || !ship.visible) return;
+  if (!ship || !ship.visible || !spriteAssets) return;
 
-  const stats = getShipStats();
-  ctx.save();
-  ctx.translate(ship.x, ship.y);
-  ctx.rotate(ship.angle);
-
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.24)';
-  ctx.beginPath();
-  ctx.ellipse(-1, 2, stats.radius * 0.96, stats.radius * 0.72, 0, 0, Math.PI * 2);
-  ctx.fill();
+  const frame = rotationFrame(ship.angle, spriteAssets.ship.length);
+  if (ship.thrusting) {
+    drawCenteredSprite(spriteAssets.thrust[frame], ship.x, ship.y, PIXEL_STYLE.shipSize, PIXEL_STYLE.shipSize);
+  }
+  drawCenteredSprite(spriteAssets.ship[frame], ship.x, ship.y, PIXEL_STYLE.shipSize, PIXEL_STYLE.shipSize);
 
   if (shieldCharges > 0 || ship.invulnerable) {
-    ctx.beginPath();
-    ctx.arc(0, 0, stats.radius + 7 + Math.sin(performance.now() * 0.01) * 1.5, 0, Math.PI * 2);
-    ctx.strokeStyle = shieldCharges > 0 ? 'rgba(96, 165, 250, 0.75)' : 'rgba(125, 211, 252, 0.45)';
-    ctx.lineWidth = 2;
-    ctx.shadowColor = 'rgba(96, 165, 250, 0.38)';
-    ctx.shadowBlur = 12;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
+    const shieldFrame = cycleFrame(performance.now(), spriteAssets.shield.length, 80);
+    drawCenteredSprite(spriteAssets.shield[shieldFrame], ship.x, ship.y, 54, 54, shieldCharges > 0 ? 0.95 : 0.55);
   }
-
-  if (ship.thrusting) {
-    const flameLength = 12 + upgrades.engine * 3 + Math.random() * 5;
-    const thrusters = [-stats.radius * 0.32, 0, stats.radius * 0.32];
-    for (const offsetY of thrusters) {
-      const flame = ctx.createLinearGradient(-stats.radius - flameLength, offsetY, -3, offsetY);
-      flame.addColorStop(0, 'rgba(255, 116, 55, 0)');
-      flame.addColorStop(0.45, '#ffd166');
-      flame.addColorStop(1, '#fff7d1');
-      ctx.beginPath();
-      ctx.moveTo(-stats.radius * 0.78, offsetY - 2.2);
-      ctx.lineTo(-stats.radius - flameLength, offsetY);
-      ctx.lineTo(-stats.radius * 0.78, offsetY + 2.2);
-      ctx.closePath();
-      ctx.fillStyle = flame;
-      ctx.shadowColor = 'rgba(255, 190, 92, 0.42)';
-      ctx.shadowBlur = 14;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
-  }
-
-  const hullPoints = [
-    { x: stats.radius + 4, y: 0 },
-    { x: stats.radius * 0.22, y: -stats.radius * 0.52 },
-    { x: -stats.radius * 0.16, y: -stats.radius * 0.86 },
-    { x: -stats.radius * 0.9, y: -stats.radius * 0.56 },
-    { x: -stats.radius * 0.64, y: 0 },
-    { x: -stats.radius * 0.9, y: stats.radius * 0.56 },
-    { x: -stats.radius * 0.16, y: stats.radius * 0.86 },
-    { x: stats.radius * 0.22, y: stats.radius * 0.52 },
-  ];
-
-  ctx.beginPath();
-  ctx.moveTo(hullPoints[0].x, hullPoints[0].y);
-  for (let i = 1; i < hullPoints.length; i++) {
-    ctx.lineTo(hullPoints[i].x, hullPoints[i].y);
-  }
-  ctx.closePath();
-  const hull = ctx.createLinearGradient(-stats.radius, -stats.radius, stats.radius, stats.radius);
-  hull.addColorStop(0, '#f3f1ec');
-  hull.addColorStop(0.35, '#b7c0cc');
-  hull.addColorStop(0.72, '#6f7783');
-  hull.addColorStop(1, '#2a2f39');
-  ctx.fillStyle = hull;
-  ctx.shadowColor = 'rgba(255, 188, 119, 0.16)';
-  ctx.shadowBlur = 12;
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.strokeStyle = 'rgba(255, 248, 237, 0.65)';
-  ctx.lineWidth = 1.4;
-  ctx.stroke();
-
-  ctx.fillStyle = '#7a1f1f';
-  ctx.beginPath();
-  ctx.moveTo(stats.radius * 0.26, 0);
-  ctx.lineTo(-stats.radius * 0.08, -stats.radius * 0.22);
-  ctx.lineTo(-stats.radius * 0.54, -stats.radius * 0.22);
-  ctx.lineTo(-stats.radius * 0.54, stats.radius * 0.22);
-  ctx.lineTo(-stats.radius * 0.08, stats.radius * 0.22);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = '#442916';
-  ctx.beginPath();
-  ctx.moveTo(stats.radius * 0.16, 0);
-  ctx.lineTo(-stats.radius * 0.1, -stats.radius * 0.3);
-  ctx.lineTo(-stats.radius * 0.34, 0);
-  ctx.lineTo(-stats.radius * 0.1, stats.radius * 0.3);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = '#d7a53a';
-  ctx.beginPath();
-  ctx.moveTo(stats.radius * 0.48, 0);
-  ctx.lineTo(stats.radius * 0.06, -stats.radius * 0.16);
-  ctx.lineTo(stats.radius * 0.06, stats.radius * 0.16);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.strokeStyle = 'rgba(255, 243, 215, 0.5)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(-stats.radius * 0.54, 0);
-  ctx.lineTo(stats.radius * 0.45, 0);
-  ctx.moveTo(-stats.radius * 0.12, -stats.radius * 0.48);
-  ctx.lineTo(stats.radius * 0.14, -stats.radius * 0.12);
-  ctx.moveTo(-stats.radius * 0.12, stats.radius * 0.48);
-  ctx.lineTo(stats.radius * 0.14, stats.radius * 0.12);
-  ctx.stroke();
-
-  if (upgrades.cannon > 0) {
-    ctx.strokeStyle = '#fff2d1';
-    ctx.lineWidth = 2.2;
-    const wingOffset = 5 + upgrades.cannon * 1.5;
-    ctx.beginPath();
-    ctx.moveTo(5, -wingOffset);
-    ctx.lineTo(stats.radius + 2, -wingOffset);
-    ctx.moveTo(5, wingOffset);
-    ctx.lineTo(stats.radius + 2, wingOffset);
-    ctx.stroke();
-  }
-
-  if (upgrades.engine > 0) {
-    ctx.fillStyle = 'rgba(255, 205, 126, 0.74)';
-    ctx.fillRect(-stats.radius * 0.92, -stats.radius * 0.48, 3, 6);
-    ctx.fillRect(-stats.radius * 0.92, stats.radius * 0.42, 3, 6);
-  }
-
-  ctx.restore();
 }
 
 function drawBullets() {
   for (const bullet of bullets) {
-    ctx.strokeStyle = bullet.color;
-    ctx.lineWidth = 2.4;
-    ctx.shadowColor = bullet.color;
-    ctx.shadowBlur = 10;
-    ctx.beginPath();
-    ctx.moveTo(bullet.prevX, bullet.prevY);
-    ctx.lineTo(bullet.x, bullet.y);
-    ctx.stroke();
-    ctx.shadowBlur = 0;
+    const dx = bullet.x - bullet.prevX;
+    const dy = bullet.y - bullet.prevY;
+    const angle = Math.atan2(dy || bullet.vy, dx || bullet.vx);
+    ctx.save();
+    ctx.translate(Math.round(bullet.x), Math.round(bullet.y));
+    ctx.rotate(angle);
+    ctx.fillStyle = bullet.color;
+    ctx.fillRect(-6, -1, 8, 2);
+    ctx.fillRect(-1, -2, 2, 4);
+    ctx.restore();
   }
 }
 
@@ -1483,9 +1380,8 @@ function drawParticles() {
   for (const particle of particles) {
     const alpha = particle.life / particle.maxLife;
     ctx.fillStyle = applyAlpha(particle.color, alpha);
-    ctx.beginPath();
-    ctx.arc(particle.x, particle.y, particle.radius * alpha, 0, Math.PI * 2);
-    ctx.fill();
+    const size = Math.max(1, Math.round(particle.radius * alpha));
+    ctx.fillRect(Math.round(particle.x), Math.round(particle.y), size, size);
   }
 }
 
@@ -1504,90 +1400,62 @@ function applyAlpha(hexColor, alpha) {
 function drawPickups() {
   for (const pickup of pickups) {
     const config = pickup.kind === 'mineral' ? MINERAL_TYPES[pickup.key] : UTILITY_DROPS[pickup.key];
-    ctx.save();
-    ctx.translate(pickup.x, pickup.y + Math.sin(pickup.bob) * 2.4);
-    ctx.rotate(pickup.spin);
-    ctx.shadowColor = config.glow;
-    ctx.shadowBlur = 12;
-    if (pickup.kind === 'mineral') {
-      ctx.beginPath();
-      ctx.moveTo(0, -pickup.radius);
-      ctx.lineTo(pickup.radius * 0.72, -pickup.radius * 0.18);
-      ctx.lineTo(pickup.radius * 0.42, pickup.radius);
-      ctx.lineTo(-pickup.radius * 0.42, pickup.radius);
-      ctx.lineTo(-pickup.radius * 0.72, -pickup.radius * 0.18);
-      ctx.closePath();
-      ctx.fillStyle = config.color;
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
-    } else {
-      ctx.fillStyle = config.color;
-      ctx.fillRect(-pickup.radius * 0.8, -pickup.radius * 0.8, pickup.radius * 1.6, pickup.radius * 1.6);
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.92)';
-      ctx.lineWidth = 1.2;
-      ctx.strokeRect(-pickup.radius * 0.8, -pickup.radius * 0.8, pickup.radius * 1.6, pickup.radius * 1.6);
-      ctx.beginPath();
-      ctx.moveTo(0, -pickup.radius * 0.46);
-      ctx.lineTo(0, pickup.radius * 0.46);
-      ctx.moveTo(-pickup.radius * 0.46, 0);
-      ctx.lineTo(pickup.radius * 0.46, 0);
-      ctx.stroke();
+    const x = Math.round(pickup.x);
+    const y = Math.round(pickup.y + Math.sin(pickup.bob) * 2.4);
+    const size = pickup.kind === 'mineral' ? 10 : 12;
+    ctx.fillStyle = config.color;
+    ctx.fillRect(x - size / 2, y - size / 2, size, size);
+    ctx.fillStyle = '#f5f1e4';
+    ctx.fillRect(x - 1, y - size / 2, 2, size);
+    if (pickup.kind === 'utility') {
+      ctx.fillRect(x - size / 2, y - 1, size, 2);
     }
-    ctx.restore();
   }
 }
 
 function drawUfo() {
-  if (!ufo) return;
+  if (!ufo || !spriteAssets) return;
 
-  ctx.save();
-  ctx.translate(ufo.x, ufo.y);
-  const body = ctx.createLinearGradient(0, -UFO_RADIUS, 0, UFO_RADIUS);
-  body.addColorStop(0, '#fecdd3');
-  body.addColorStop(1, '#f472b6');
-  ctx.fillStyle = body;
-  ctx.strokeStyle = '#ffe4e6';
-  ctx.lineWidth = 1.8;
-  ctx.shadowColor = 'rgba(244, 114, 182, 0.46)';
-  ctx.shadowBlur = 14;
-
-  ctx.beginPath();
-  ctx.ellipse(0, 2, UFO_RADIUS, UFO_RADIUS * 0.42, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.ellipse(0, -5, UFO_RADIUS * 0.56, UFO_RADIUS * 0.34, 0, Math.PI, 0);
-  ctx.fillStyle = '#fdf2f8';
-  ctx.fill();
-  ctx.restore();
+  const frame = cycleFrame(performance.now(), spriteAssets.ufo.length, 100);
+  drawCenteredSprite(spriteAssets.ufo[frame], ufo.x, ufo.y, PIXEL_STYLE.ufoSize, PIXEL_STYLE.ufoSize);
 }
 
 function drawUfoBullets() {
-  ctx.fillStyle = '#fb7185';
-  ctx.shadowColor = '#fb7185';
-  ctx.shadowBlur = 8;
   for (const bullet of ufoBullets) {
-    ctx.beginPath();
-    ctx.arc(bullet.x, bullet.y, 3.2, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillStyle = '#ff6584';
+    ctx.fillRect(Math.round(bullet.x) - 2, Math.round(bullet.y) - 2, 4, 4);
   }
-  ctx.shadowBlur = 0;
+}
+
+function drawEffects() {
+  if (!spriteAssets) return;
+  for (const effect of effects) {
+    if (effect.type === 'shield') {
+      const frame = cycleFrame(effect.elapsed, spriteAssets.shield.length, 70);
+      drawCenteredSprite(spriteAssets.shield[frame], effect.x, effect.y, effect.size, effect.size, 0.85);
+      continue;
+    }
+
+    const frames = effect.type === 'shipExplosion' ? spriteAssets.shipExplosion : spriteAssets.explosion;
+    const frameDuration = effect.type === 'shipExplosion' ? 30 : 30;
+    const frame = frames[Math.min(frames.length - 1, Math.floor(effect.elapsed / frameDuration))];
+    drawCenteredSprite(frame, effect.x, effect.y, effect.size, effect.size);
+  }
 }
 
 function drawWaveBanner() {
   if (waveBannerTimer <= 0) return;
   const alpha = clamp(waveBannerTimer / 800, 0, 1);
   ctx.save();
-  ctx.fillStyle = `rgba(216, 252, 255, ${alpha})`;
-  ctx.font = '16px var(--font-pixel, monospace)';
+  ctx.fillStyle = applyAlpha('#0f141b', alpha * 0.9);
+  ctx.fillRect(CANVAS_W / 2 - 108, 12, 216, 28);
+  ctx.strokeStyle = applyAlpha('#c79c46', alpha);
+  ctx.strokeRect(CANVAS_W / 2 - 108, 12, 216, 28);
+  ctx.fillStyle = applyAlpha('#f7f3d6', alpha);
+  ctx.font = '14px var(--font-pixel, monospace)';
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-  ctx.shadowColor = 'rgba(103, 232, 249, 0.4)';
-  ctx.shadowBlur = 12;
-  ctx.fillText(`WAVE ${wave}`, CANVAS_W / 2, 22);
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`WAVE ${wave}`, CANVAS_W / 2, 26);
   ctx.restore();
 }
 
@@ -1598,6 +1466,7 @@ function draw() {
   drawBullets();
   drawUfo();
   drawUfoBullets();
+  drawEffects();
   drawParticles();
   drawShip();
   drawWaveBanner();
@@ -1614,12 +1483,15 @@ function gameLoop(timestamp) {
 
 function resetOverlayToStart() {
   overlayTitle.textContent = 'VOID DRIFTER';
-  overlayMessage.textContent = 'Slow launch. Short bursts. Clear rocks, gather salvage, and refit between waves.';
+  overlayMessage.textContent = spritesReady
+    ? 'Short bursts. Clear rocks, gather salvage, and rearm between waves.'
+    : 'Sprite pack loading. Stand by.';
   overlaySummary.hidden = true;
   overlayRank.hidden = true;
   shopPanel.hidden = true;
   difficultySelector.style.display = 'flex';
-  startBtn.textContent = 'START GAME';
+  startBtn.textContent = spritesReady ? 'START GAME' : 'LOADING SPRITES';
+  startBtn.disabled = !spritesReady;
 }
 
 document.addEventListener('keydown', (event) => {
@@ -1707,6 +1579,32 @@ function initDifficultySelector() {
 initDifficultySelector();
 updateHud();
 resetOverlayToStart();
+
+loadSpriteSets()
+  .then((assets) => {
+    spriteAssets = assets;
+    spritesReady = true;
+    spriteLoadError = null;
+    resetOverlayToStart();
+    overlayRank.hidden = false;
+    overlayRank.textContent = 'Maelstrom sprite pack ready.';
+    setTimeout(() => {
+      if (overlayState === 'start') {
+        overlayRank.hidden = true;
+      }
+    }, 1200);
+    draw();
+  })
+  .catch((error) => {
+    console.error('Sprite load failed:', error);
+    spriteLoadError = error;
+    spritesReady = false;
+    overlayRank.hidden = false;
+    overlayRank.textContent = 'Sprite pack failed to load.';
+    overlayMessage.textContent = 'Refresh to retry sprite loading.';
+    startBtn.disabled = true;
+    startBtn.textContent = 'SPRITES MISSING';
+  });
 
 window.voidDrifterDebug = {
   forceShop() {
