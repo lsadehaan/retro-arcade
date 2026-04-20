@@ -3,3 +3,4 @@ node_modules/
 db/*.sqlite3
 dist/
 *.sqlite3
+data/

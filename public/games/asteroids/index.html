@@ -24,108 +24,264 @@
       overflow: hidden;
     }
     .game-main h1 {
-      font-size: 1.4rem;
-      letter-spacing: 0.2em;
-      text-shadow: 0 0 10px #33ff88, 0 0 20px #33ff88;
-      margin-bottom: 0.4rem;
-      color: #33ff88;
-      word-break: break-word;
-      overflow-wrap: break-word;
+      font-size: 1.45rem;
+      letter-spacing: 0.22em;
+      text-shadow: 0 0 12px rgba(91, 243, 255, 0.6), 0 0 22px rgba(80, 255, 170, 0.35);
+      margin-bottom: 0.45rem;
+      color: #7fffd8;
       text-align: center;
     }
     #hud {
-      display: flex;
-      gap: 1.5rem;
-      font-size: 0.9rem;
-      margin-bottom: 0.4rem;
-      text-shadow: 0 0 6px #0ff;
-      color: #0ff;
-      flex-wrap: wrap;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(110px, auto));
+      gap: 0.4rem 1rem;
+      width: min(700px, 100%);
+      margin-bottom: 0.55rem;
+      padding: 0.85rem 1rem;
+      border: 1px solid rgba(111, 255, 220, 0.28);
+      background:
+        linear-gradient(135deg, rgba(6, 12, 30, 0.92), rgba(3, 8, 18, 0.76)),
+        radial-gradient(circle at top left, rgba(0, 255, 255, 0.12), transparent 42%);
+      box-shadow: 0 0 18px rgba(0, 255, 255, 0.14);
+      border-radius: 10px;
+      font-size: 0.82rem;
+      color: #d8fcff;
     }
-    #canvas-wrapper { position: relative; max-width: 100%; }
+    .hud-block {
+      display: flex;
+      flex-direction: column;
+      gap: 0.18rem;
+      min-width: 0;
+    }
+    .hud-label {
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(166, 236, 255, 0.7);
+    }
+    .hud-value {
+      color: #7fffd8;
+      text-shadow: 0 0 8px rgba(102, 255, 214, 0.4);
+      font-size: 0.86rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #canvas-wrapper {
+      position: relative;
+      max-width: 100%;
+      border-radius: 18px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top, rgba(58, 92, 255, 0.2), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255, 155, 74, 0.12), transparent 30%),
+        linear-gradient(180deg, rgba(4, 10, 24, 0.9), rgba(1, 3, 11, 1));
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45), 0 0 22px rgba(75, 255, 197, 0.16);
+    }
     canvas {
       display: block;
-      border: 2px solid #33ff88;
-      box-shadow: 0 0 20px #33ff88, 0 0 40px #009944;
+      border: 1px solid rgba(106, 255, 221, 0.6);
+      box-shadow: inset 0 0 24px rgba(108, 255, 217, 0.08);
       max-width: 100%;
       height: auto;
       touch-action: none;
       -webkit-touch-callout: none;
+      background: transparent;
     }
     #overlay {
       position: absolute;
       inset: 0;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: rgba(0,0,0,0.82);
-      color: #33ff88;
-      gap: 0.8rem;
+      padding: 1rem;
+      background: rgba(1, 4, 12, 0.68);
+      backdrop-filter: blur(8px);
+      color: #d8fcff;
+    }
+    .overlay-card {
+      width: min(92%, 520px);
+      padding: 1.2rem 1.15rem 1.1rem;
+      border: 1px solid rgba(103, 255, 223, 0.38);
+      border-radius: 18px;
+      background:
+        linear-gradient(160deg, rgba(5, 14, 31, 0.96), rgba(6, 11, 24, 0.92)),
+        radial-gradient(circle at top right, rgba(0, 255, 255, 0.14), transparent 38%);
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.38), 0 0 18px rgba(111, 255, 220, 0.18);
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      align-items: stretch;
     }
     #overlay h2 {
-      font-size: 1.8rem;
-      text-shadow: 0 0 10px #33ff88;
-      letter-spacing: 0.2em;
+      font-size: 1.65rem;
+      text-shadow: 0 0 10px rgba(104, 255, 226, 0.55);
+      letter-spacing: 0.22em;
       font-family: var(--font-pixel);
-      word-break: break-word;
-      overflow-wrap: break-word;
       text-align: center;
-      max-width: 90%;
+      color: #9fffe0;
+      margin: 0;
     }
-    #overlay p {
-      font-size: 0.95rem;
-      opacity: 0.85;
+    #overlay-message {
+      font-size: 0.93rem;
+      opacity: 0.92;
       text-align: center;
-      max-width: 380px;
-      line-height: 1.6;
+      line-height: 1.65;
+      margin: 0;
     }
-    #overlay button {
-      background: transparent;
-      border: 2px solid #33ff88;
-      color: #33ff88;
-      font-family: inherit;
-      font-size: 1.1rem;
-      padding: 0.5rem 2rem;
-      cursor: pointer;
-      text-shadow: 0 0 6px #33ff88;
-      box-shadow: 0 0 10px #33ff88;
-      letter-spacing: 0.1em;
+    .overlay-summary {
+      border: 1px solid rgba(120, 255, 228, 0.16);
+      border-radius: 12px;
+      padding: 0.85rem 0.95rem;
+      background: rgba(7, 15, 30, 0.72);
+      font-size: 0.79rem;
+      line-height: 1.55;
     }
-    #overlay button:hover { background: rgba(51,255,136,0.1); }
-
-    /* Difficulty selector */
+    .overlay-summary strong {
+      color: #89ffe5;
+      font-weight: 700;
+    }
+    .overlay-rank {
+      text-align: center;
+      font-size: 0.86rem;
+      color: #86ffe1;
+      min-height: 1.2rem;
+      text-shadow: 0 0 8px rgba(134, 255, 225, 0.38);
+    }
     #difficulty-selector {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.55rem;
       justify-content: center;
+      flex-wrap: wrap;
     }
     .diff-btn {
-      background: transparent;
-      border: 1px solid #33ff88;
-      color: #33ff88;
+      background: rgba(0, 0, 0, 0.16);
+      border: 1px solid rgba(118, 255, 232, 0.55);
+      color: #a9fff1;
       font-family: inherit;
       font-size: 0.75rem;
-      padding: 0.25rem 0.7rem;
+      padding: 0.38rem 0.8rem;
       cursor: pointer;
-      letter-spacing: 0.08em;
-      opacity: 0.6;
-      transition: opacity 0.15s, box-shadow 0.15s;
+      letter-spacing: 0.12em;
+      opacity: 0.74;
+      transition: opacity 0.15s, box-shadow 0.15s, transform 0.15s;
     }
-    .diff-btn:hover { opacity: 0.85; }
+    .diff-btn:hover {
+      opacity: 0.98;
+      transform: translateY(-1px);
+    }
     .diff-btn.diff-active {
       opacity: 1;
-      box-shadow: 0 0 8px #33ff88;
+      box-shadow: 0 0 12px rgba(90, 255, 222, 0.34);
       border-width: 2px;
+    }
+    .shop-panel {
+      border: 1px solid rgba(118, 255, 232, 0.18);
+      border-radius: 14px;
+      padding: 0.9rem;
+      background: rgba(8, 15, 30, 0.74);
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+    .shop-panel[hidden],
+    .overlay-summary[hidden],
+    .overlay-rank[hidden] {
+      display: none;
+    }
+    .shop-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #98fff0;
+    }
+    .shop-status {
+      font-size: 0.74rem;
+      color: rgba(216, 252, 255, 0.78);
+      min-height: 1.1rem;
+    }
+    .shop-tip {
+      font-size: 0.68rem;
+      color: rgba(170, 241, 255, 0.62);
+      text-align: center;
+    }
+    .shop-items {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+    }
+    .shop-item {
+      border: 1px solid rgba(109, 255, 220, 0.22);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(14, 26, 48, 0.85), rgba(7, 14, 26, 0.9));
+      color: #dbffff;
+      padding: 0.78rem;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
+      min-height: 126px;
+    }
+    .shop-item:hover:not(:disabled) {
+      transform: translateY(-2px);
+      border-color: rgba(119, 255, 229, 0.55);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.22), 0 0 14px rgba(102, 255, 217, 0.16);
+    }
+    .shop-item:disabled {
+      opacity: 0.48;
+      cursor: not-allowed;
+    }
+    .shop-item-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.6rem;
+      font-size: 0.78rem;
+      color: #89ffe5;
+      margin-bottom: 0.3rem;
+    }
+    .shop-item-key {
+      color: rgba(255, 215, 115, 0.92);
+      font-size: 0.68rem;
+    }
+    .shop-item-desc {
+      font-size: 0.72rem;
+      color: rgba(219, 255, 255, 0.78);
+      line-height: 1.45;
+      min-height: 3.2rem;
+      margin-bottom: 0.45rem;
+    }
+    .shop-item-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(164, 240, 255, 0.65);
+    }
+    #overlay button.action-btn {
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.12), rgba(10, 24, 26, 0.22));
+      border: 1px solid rgba(112, 255, 222, 0.62);
+      color: #9fffe8;
+      font-family: inherit;
+      font-size: 1rem;
+      padding: 0.65rem 1.2rem;
+      cursor: pointer;
+      text-shadow: 0 0 6px rgba(120, 255, 229, 0.36);
+      box-shadow: 0 0 14px rgba(94, 255, 218, 0.18);
+      letter-spacing: 0.16em;
+    }
+    #overlay button.action-btn:hover {
+      background: rgba(51, 255, 180, 0.08);
     }
     .lb-diff {
       font-size: 0.6rem;
       opacity: 0.5;
       margin-left: 4px;
     }
-
-    /* Leaderboard panel */
     .game-leaderboard {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -142,7 +298,10 @@
       margin-bottom: 12px;
       text-align: center;
     }
-    .lb-list { list-style: none; font-size: 0.8rem; }
+    .lb-list {
+      list-style: none;
+      font-size: 0.8rem;
+    }
     .lb-list li {
       display: flex;
       justify-content: space-between;
@@ -156,37 +315,69 @@
     .lb-empty { color: #555; font-size: 0.75rem; text-align: center; padding: 12px 0; }
 
     @media (max-width: 900px) {
-      .game-layout { flex-direction: column; align-items: center; }
-      .game-leaderboard { max-width: 100%; min-width: 280px; }
+      .game-layout {
+        flex-direction: column;
+        align-items: center;
+      }
+      .game-leaderboard {
+        max-width: 100%;
+        min-width: 280px;
+      }
+    }
+    @media (max-width: 640px) {
+      #hud {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .shop-items {
+        grid-template-columns: 1fr;
+      }
+      .overlay-card {
+        width: min(96%, 560px);
+      }
     }
     @media (max-width: 480px) {
       #hud {
-        font-size: 0.7rem;
-        gap: 0.4rem 0.8rem;
+        font-size: 0.72rem;
+        gap: 0.5rem 0.65rem;
+        padding: 0.7rem 0.8rem;
+      }
+      .hud-label {
+        font-size: 0.5rem;
+      }
+      .hud-value {
+        font-size: 0.74rem;
       }
       #overlay {
         overflow-y: auto;
-        gap: 0.4rem;
-        padding: 0.5rem;
+        padding: 0.55rem;
+      }
+      .overlay-card {
+        gap: 0.65rem;
+        padding: 0.9rem 0.85rem 1rem;
       }
       #overlay h2 {
-        font-size: 1.1rem;
-        letter-spacing: 0.1em;
+        font-size: 1.12rem;
+        letter-spacing: 0.12em;
       }
-      #overlay p {
+      #overlay-message {
+        font-size: 0.74rem;
+        line-height: 1.45;
+      }
+      .overlay-summary {
         font-size: 0.7rem;
-        max-width: 95%;
-        line-height: 1.3;
+        padding: 0.7rem 0.75rem;
       }
-      #overlay button {
-        font-size: 0.85rem;
-        padding: 0.35rem 1.2rem;
+      .shop-item {
+        min-height: 110px;
+      }
+      #overlay button.action-btn {
+        font-size: 0.82rem;
+        padding: 0.52rem 0.9rem;
       }
     }
   </style>
 </head>
 <body>
-  <!-- Navbar -->
   <nav class="navbar">
     <a href="/" class="navbar-brand">RETRO ARCADE</a>
     <div class="navbar-links">
@@ -210,26 +401,58 @@
     <div class="game-main">
       <h1>VOID DRIFTER</h1>
       <div id="hud">
-        <span>SCORE: <span id="score">0</span></span>
-        <span>LIVES: <span id="lives">&#9733;&#9733;&#9733;</span></span>
-        <span>WAVE: <span id="wave">1</span></span>
+        <div class="hud-block">
+          <span class="hud-label">Score</span>
+          <span class="hud-value" id="score">0</span>
+        </div>
+        <div class="hud-block">
+          <span class="hud-label">Hull</span>
+          <span class="hud-value" id="lives">&#10022;&#10022;&#10022;</span>
+        </div>
+        <div class="hud-block">
+          <span class="hud-label">Wave</span>
+          <span class="hud-value" id="wave">1</span>
+        </div>
+        <div class="hud-block">
+          <span class="hud-label">Credits</span>
+          <span class="hud-value" id="credits">0</span>
+        </div>
+        <div class="hud-block">
+          <span class="hud-label">Cargo</span>
+          <span class="hud-value" id="cargo">Empty</span>
+        </div>
+        <div class="hud-block">
+          <span class="hud-label">Loadout</span>
+          <span class="hud-value" id="loadout">MK I • SH 0</span>
+        </div>
       </div>
       <div id="canvas-wrapper">
         <canvas id="canvas" width="700" height="520"></canvas>
         <div id="overlay">
-          <h2>VOID DRIFTER</h2>
-          <p>
-            Left/Right or A/D — Rotate<br>
-            Up or W — Thrust<br>
-            Space — Fire<br>
-            Destroy asteroids. Survive the void.
-          </p>
-          <div id="difficulty-selector">
-            <button class="diff-btn" data-difficulty="easy">Easy</button>
-            <button class="diff-btn" data-difficulty="normal">Normal</button>
-            <button class="diff-btn" data-difficulty="hard">Hard</button>
+          <div class="overlay-card">
+            <h2 id="overlay-title">VOID DRIFTER</h2>
+            <p id="overlay-message">
+              Rotate with Left/Right or A/D. Burn forward with Up or W.<br />
+              Crack asteroids, scoop the mineral drops, then spend salvage in the dock between rounds.
+            </p>
+            <div id="overlay-summary" class="overlay-summary" hidden></div>
+            <div id="overlay-rank" class="overlay-rank" hidden></div>
+            <div id="difficulty-selector">
+              <button class="diff-btn" data-difficulty="easy">Easy</button>
+              <button class="diff-btn" data-difficulty="normal">Normal</button>
+              <button class="diff-btn" data-difficulty="hard">Hard</button>
+            </div>
+            <div id="shop-panel" class="shop-panel" hidden>
+              <div class="shop-heading">
+                <span>Dockyard Upgrades</span>
+                <span id="shop-credits">Credits 0</span>
+              </div>
+              <div id="shop-status" class="shop-status"></div>
+              <div id="shop-items" class="shop-items"></div>
+              <div class="shop-tip">Press 1-5 to buy, then Enter to launch the next wave.</div>
+            </div>
+            <button id="start-btn" class="action-btn">START GAME</button>
           </div>
-          <button id="start-btn">START GAME</button>
         </div>
       </div>
       <div class="touch-controls" id="touch-controls">
@@ -240,7 +463,7 @@
           <button class="touch-btn-autofire" id="autofire-btn">AUTO</button>
           <button class="dpad-btn" data-key="ArrowRight" style="width:72px;height:72px;font-size:1.8rem;">&#9654;</button>
         </div>
-        <div class="touch-hint">ROTATE &bull; THRUST &bull; FIRE</div>
+        <div class="touch-hint">DRIFT • HARVEST • UPGRADE</div>
       </div>
     </div>
 
@@ -257,7 +480,6 @@
   <script src="/js/settings-init.js"></script>
   <script src="/js/api.js"></script>
   <script>
-    // Touch controls — movement buttons
     document.querySelectorAll('.dpad-btn[data-key]').forEach(btn => {
       let interval = null;
       const startMove = (e) => {
@@ -277,7 +499,6 @@
       btn.addEventListener('touchcancel', stopMove, { passive: false });
     });
 
-    // Fire button
     const fireBtn = document.getElementById('fire-btn');
     if (fireBtn) {
       fireBtn.addEventListener('touchstart', (e) => {
@@ -347,7 +568,6 @@
         });
       }
       loadMiniLeaderboard();
-
     });
   </script>
   <script src="game.js"></script>
