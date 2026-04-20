@@ -3,40 +3,40 @@ const CANVAS_H = 520;
 
 const BASE_SHIP = {
   radius: 18,
-  rotationSpeed: 0.068,
-  thrust: 0.125,
-  friction: 0.992,
-  maxSpeed: 6.2,
-  bulletSpeed: 8.2,
-  bulletLife: 56,
+  rotationSpeed: 0.05,
+  thrust: 0.048,
+  friction: 0.986,
+  maxSpeed: 2.8,
+  bulletSpeed: 6.4,
+  bulletLife: 52,
   bulletRadius: 2.6,
-  maxBullets: 14,
-  fireCooldown: 165,
+  maxBullets: 9,
+  fireCooldown: 255,
 };
 
 const PARTICLE_LIFE = 34;
 const PICKUP_LIFE = 9000;
 const ROUND_CLEAR_DELAY = 1400;
-const OVERDRIVE_TIME = 10000;
+const OVERDRIVE_TIME = 6000;
 const SHIELD_GRACE_TIME = 600;
-const UFO_INTERVAL_MIN = 14000;
-const UFO_INTERVAL_MAX = 26000;
-const UFO_SPEED = 2.2;
-const UFO_FIRE_RATE = 1450;
+const UFO_INTERVAL_MIN = 18000;
+const UFO_INTERVAL_MAX = 30000;
+const UFO_SPEED = 1.8;
+const UFO_FIRE_RATE = 1650;
 const UFO_RADIUS = 18;
 const UFO_POINTS = 200;
-const UFO_BULLET_SPEED = 4.3;
+const UFO_BULLET_SPEED = 3.9;
 
 const DIFFICULTY_CONFIG = {
-  easy: { label: 'EASY', maxLives: 5, asteroidSpeedMult: 0.72, invulnTime: 3000, startingAsteroids: 3 },
-  normal: { label: 'NORMAL', maxLives: 3, asteroidSpeedMult: 1, invulnTime: 2000, startingAsteroids: 3 },
-  hard: { label: 'HARD', maxLives: 2, asteroidSpeedMult: 1.3, invulnTime: 1500, startingAsteroids: 5 },
+  easy: { label: 'EASY', maxLives: 5, asteroidSpeedMult: 0.4, invulnTime: 3200, startingAsteroids: 2 },
+  normal: { label: 'NORMAL', maxLives: 3, asteroidSpeedMult: 0.55, invulnTime: 2600, startingAsteroids: 2 },
+  hard: { label: 'HARD', maxLives: 2, asteroidSpeedMult: 0.75, invulnTime: 2000, startingAsteroids: 3 },
 };
 
 const ASTEROID_SIZES = {
-  large: { radius: 46, points: 25, speed: 0.9, children: 'medium', utilityChance: 0.1, mineralCount: [2, 4] },
-  medium: { radius: 25, points: 55, speed: 1.55, children: 'small', utilityChance: 0.16, mineralCount: [1, 3] },
-  small: { radius: 13, points: 110, speed: 2.35, children: null, utilityChance: 0.22, mineralCount: [1, 2] },
+  large: { radius: 46, points: 25, speed: 0.52, children: 'medium', utilityChance: 0.04, mineralCount: [2, 3] },
+  medium: { radius: 25, points: 55, speed: 0.86, children: 'small', utilityChance: 0.07, mineralCount: [1, 2] },
+  small: { radius: 13, points: 110, speed: 1.18, children: null, utilityChance: 0.1, mineralCount: [1, 2] },
 };
 
 const MINERAL_TYPES = {
@@ -221,22 +221,23 @@ function formatThousands(value) {
 }
 
 function getShipStats() {
-  const engineMult = 1 + upgrades.engine * 0.16;
-  const shotBonus = shotBoostTimer > 0 ? 1 : 0;
+  const engineMult = 1 + upgrades.engine * 0.09;
+  const overdriveShots = shotBoostTimer > 0 ? 1 : 0;
+  const projectiles = Math.min(3, 1 + (upgrades.cannon >= 2 ? 1 : 0) + overdriveShots);
   return {
     radius: BASE_SHIP.radius,
-    rotationSpeed: BASE_SHIP.rotationSpeed * (1 + upgrades.engine * 0.06),
+    rotationSpeed: BASE_SHIP.rotationSpeed * (1 + upgrades.engine * 0.045),
     thrust: BASE_SHIP.thrust * engineMult,
     friction: BASE_SHIP.friction,
-    maxSpeed: BASE_SHIP.maxSpeed * (1 + upgrades.engine * 0.1),
-    bulletSpeed: BASE_SHIP.bulletSpeed + upgrades.engine * 0.18,
+    maxSpeed: BASE_SHIP.maxSpeed * (1 + upgrades.engine * 0.06),
+    bulletSpeed: BASE_SHIP.bulletSpeed + upgrades.cannon * 0.15 + upgrades.engine * 0.05,
     bulletLife: BASE_SHIP.bulletLife,
     bulletRadius: BASE_SHIP.bulletRadius,
-    maxBullets: BASE_SHIP.maxBullets,
-    fireCooldown: BASE_SHIP.fireCooldown / (1 + upgrades.cannon * 0.14 + (shotBoostTimer > 0 ? 0.24 : 0)),
-    projectiles: Math.min(5, 1 + upgrades.cannon + shotBonus),
-    pickupRadius: 18 + upgrades.tractor * 8,
-    magnetRadius: 58 + upgrades.tractor * 26,
+    maxBullets: BASE_SHIP.maxBullets + Math.min(upgrades.cannon, 2),
+    fireCooldown: BASE_SHIP.fireCooldown / (1 + upgrades.cannon * 0.08 + (shotBoostTimer > 0 ? 0.14 : 0)),
+    projectiles,
+    pickupRadius: 18 + upgrades.tractor * 5,
+    magnetRadius: 56 + upgrades.tractor * 14,
   };
 }
 
@@ -291,7 +292,7 @@ function updateHud() {
   creditsEl.textContent = formatThousands(credits);
   cargoEl.textContent = summarizeCargo();
   const stats = getShipStats();
-  loadoutEl.textContent = `MK ${toRoman(1 + upgrades.cannon)} • ENG ${upgrades.engine + 1} • SH ${shieldCharges}${shotBoostTimer > 0 ? ' • OD' : ''}`;
+  loadoutEl.textContent = `GUN ${toRoman(1 + upgrades.cannon)} • ENG ${upgrades.engine + 1} • TR ${upgrades.tractor} • SH ${shieldCharges}${shotBoostTimer > 0 ? ' • OD' : ''}`;
   waveEl.textContent = String(Math.max(1, wave));
   updateLivesDisplay();
   return stats;
@@ -392,10 +393,10 @@ function spawnWaveAsteroids() {
   roundClearTimer = 0;
   currentWaveSalvage = createWaveSalvage();
   shieldCharges = Math.max(shieldCharges, upgrades.shield);
-  waveBannerTimer = 1900;
+  waveBannerTimer = 1600;
   if (wave > 1) sfx.play('levelup');
 
-  const count = wave + activeDiff.startingAsteroids;
+  const count = activeDiff.startingAsteroids + Math.ceil((wave - 1) * 0.75);
   for (let i = 0; i < count; i++) {
     let x;
     let y;
@@ -408,7 +409,7 @@ function spawnWaveAsteroids() {
     }
 
     const angle = rand(0, Math.PI * 2);
-    const speed = ASTEROID_SIZES.large.speed + Math.min(wave * 0.05, 0.5);
+    const speed = ASTEROID_SIZES.large.speed + Math.min((wave - 1) * 0.03, 0.22);
     asteroids.push(createAsteroid(
       'large',
       x,
@@ -467,9 +468,9 @@ function dropAsteroidRewards(asteroid) {
 
   if (Math.random() < def.utilityChance) {
     const utilityKey = weightedChoice([
-      { value: 'repair', weight: 28 },
+      { value: 'repair', weight: 40 },
       { value: 'shield', weight: 38 },
-      { value: 'overdrive', weight: 34 },
+      { value: 'overdrive', weight: 22 },
     ]);
     pickups.push(createPickup('utility', utilityKey, asteroid.x, asteroid.y, 10, 0.85));
   }
@@ -682,7 +683,7 @@ function updatePickups(dt) {
     if (ship) {
       const distance = dist(ship.x, ship.y, pickup.x, pickup.y);
       if (distance < shipStats.magnetRadius && !shopOpen) {
-        const pull = (1 - distance / shipStats.magnetRadius) * (0.12 + upgrades.tractor * 0.08);
+        const pull = (1 - distance / shipStats.magnetRadius) * (0.08 + upgrades.tractor * 0.04);
         pickup.vx += ((ship.x - pickup.x) / Math.max(1, distance)) * pull * dtScale;
         pickup.vy += ((ship.y - pickup.y) / Math.max(1, distance)) * pull * dtScale;
       }
@@ -907,31 +908,33 @@ function shopDefinitions() {
       key: 'pulse',
       hotkey: '1',
       label: 'Pulse Cannons',
-      description: 'Adds side-lasers and tightens the firing cycle.',
-      level: `${upgrades.cannon}/3`,
-      cost: 70 + upgrades.cannon * 55,
-      disabled: upgrades.cannon >= 3 || credits < 70 + upgrades.cannon * 55,
+      description: 'Tightens cadence; later tiers add a second firing lane.',
+      level: `MK ${toRoman(1 + upgrades.cannon)}`,
+      maxed: upgrades.cannon >= 3,
+      cost: 58 + upgrades.cannon * 46,
+      disabled: upgrades.cannon >= 3 || credits < 58 + upgrades.cannon * 46,
       buy() {
         if (upgrades.cannon >= 3) return false;
-        const cost = 70 + upgrades.cannon * 55;
+        const cost = 58 + upgrades.cannon * 46;
         if (credits < cost) return false;
         credits -= cost;
         upgrades.cannon += 1;
         sfx.play('powerup');
-        return `Pulse Cannons upgraded to MK ${toRoman(1 + upgrades.cannon)}.`;
+        return `Pulse Cannons tuned to MK ${toRoman(1 + upgrades.cannon)}.`;
       },
     },
     {
       key: 'engine',
       hotkey: '2',
       label: 'Afterburners',
-      description: 'Boosts thrust, turn response, and top drift speed.',
-      level: `${upgrades.engine}/4`,
-      cost: 55 + upgrades.engine * 45,
-      disabled: upgrades.engine >= 4 || credits < 55 + upgrades.engine * 45,
+      description: 'Small gains to thrust, turn response, and drift speed.',
+      level: `T${upgrades.engine}`,
+      maxed: upgrades.engine >= 3,
+      cost: 44 + upgrades.engine * 34,
+      disabled: upgrades.engine >= 3 || credits < 44 + upgrades.engine * 34,
       buy() {
-        if (upgrades.engine >= 4) return false;
-        const cost = 55 + upgrades.engine * 45;
+        if (upgrades.engine >= 3) return false;
+        const cost = 44 + upgrades.engine * 34;
         if (credits < cost) return false;
         credits -= cost;
         upgrades.engine += 1;
@@ -943,13 +946,14 @@ function shopDefinitions() {
       key: 'tractor',
       hotkey: '3',
       label: 'Tractor Beam',
-      description: 'Pulls mineral shards from farther away and widens pickup range.',
-      level: `${upgrades.tractor}/3`,
-      cost: 48 + upgrades.tractor * 38,
-      disabled: upgrades.tractor >= 3 || credits < 48 + upgrades.tractor * 38,
+      description: 'Widens salvage pickup and adds a gentler magnetic pull.',
+      level: `T${upgrades.tractor}`,
+      maxed: upgrades.tractor >= 2,
+      cost: 40 + upgrades.tractor * 32,
+      disabled: upgrades.tractor >= 2 || credits < 40 + upgrades.tractor * 32,
       buy() {
-        if (upgrades.tractor >= 3) return false;
-        const cost = 48 + upgrades.tractor * 38;
+        if (upgrades.tractor >= 2) return false;
+        const cost = 40 + upgrades.tractor * 32;
         if (credits < cost) return false;
         credits -= cost;
         upgrades.tractor += 1;
@@ -961,13 +965,14 @@ function shopDefinitions() {
       key: 'shield',
       hotkey: '4',
       label: 'Shield Matrix',
-      description: 'Adds a starting shield charge each wave and grants one now.',
-      level: `${upgrades.shield}/3`,
-      cost: 82 + upgrades.shield * 58,
-      disabled: upgrades.shield >= 3 || credits < 82 + upgrades.shield * 58,
+      description: 'Adds one starting shield per wave and grants one now.',
+      level: `T${upgrades.shield}`,
+      maxed: upgrades.shield >= 2,
+      cost: 72 + upgrades.shield * 46,
+      disabled: upgrades.shield >= 2 || credits < 72 + upgrades.shield * 46,
       buy() {
-        if (upgrades.shield >= 3) return false;
-        const cost = 82 + upgrades.shield * 58;
+        if (upgrades.shield >= 2) return false;
+        const cost = 72 + upgrades.shield * 46;
         if (credits < cost) return false;
         credits -= cost;
         upgrades.shield += 1;
@@ -980,12 +985,13 @@ function shopDefinitions() {
       key: 'repair',
       hotkey: '5',
       label: 'Field Repair',
-      description: 'Spend salvage on immediate hull restoration before launching.',
+      description: 'Restore one hull point before the next wave launches.',
       level: lives < activeDiff.maxLives ? `${lives}/${activeDiff.maxLives}` : 'Full',
-      cost: 38 + wave * 8,
-      disabled: lives >= activeDiff.maxLives || credits < 38 + wave * 8,
+      maxed: lives >= activeDiff.maxLives,
+      cost: 30 + wave * 7,
+      disabled: lives >= activeDiff.maxLives || credits < 30 + wave * 7,
       buy() {
-        const cost = 38 + wave * 8;
+        const cost = 30 + wave * 7;
         if (lives >= activeDiff.maxLives || credits < cost) return false;
         credits -= cost;
         lives += 1;
@@ -1010,9 +1016,15 @@ function renderShopItems() {
     button.innerHTML =
       `<div class="shop-item-title"><span>${item.label}</span><span class="shop-item-key">[${item.hotkey}]</span></div>` +
       `<div class="shop-item-desc">${item.description}</div>` +
-      `<div class="shop-item-meta"><span>Cost ${formatThousands(item.cost)}</span><span>${item.disabled && item.level.includes('/3') && item.level.startsWith('3') ? 'MAX' : item.level}</span></div>`;
+      `<div class="shop-item-meta"><span>Cost ${formatThousands(item.cost)}</span><span>${item.maxed ? 'MAX' : item.level}</span></div>`;
     shopItemsEl.appendChild(button);
   }
+}
+
+function renderSummaryTiles(items) {
+  return `<div class="summary-grid">${items.map((item) => (
+    `<div class="summary-tile"><span class="summary-kicker">${item.label}</span><span class="summary-value">${item.value}</span></div>`
+  )).join('')}</div>`;
 }
 
 function renderSalvageSummary() {
@@ -1021,20 +1033,20 @@ function renderSalvageSummary() {
     .filter(Boolean)
     .join(' • ');
   const utilities = currentWaveSalvage.utility.length ? currentWaveSalvage.utility.join(', ') : 'None';
-  return (
-    `<strong>Wave ${wave} salvage:</strong> ${formatThousands(currentWaveSalvage.credits)} credits banked.<br>` +
-    `<strong>Minerals:</strong> ${minerals || 'No recovered ore'}<br>` +
-    `<strong>Special pickups:</strong> ${utilities}`
-  );
+  return renderSummaryTiles([
+    { label: `Wave ${wave} Banked`, value: `${formatThousands(currentWaveSalvage.credits)} credits` },
+    { label: 'Recovered Ore', value: minerals || 'No recovered ore' },
+    { label: 'Special Pickups', value: utilities },
+  ]);
 }
 
 function renderRunSummary() {
   const upgradesSummary = `Cannons MK ${toRoman(1 + upgrades.cannon)} • Engine ${upgrades.engine + 1} • Tractor ${upgrades.tractor} • Shield ${upgrades.shield}`;
-  return (
-    `<strong>Run haul:</strong> ${formatThousands(credits)} unspent credits.<br>` +
-    `<strong>Cargo:</strong> ${summarizeCargo()}<br>` +
-    `<strong>Loadout:</strong> ${upgradesSummary}`
-  );
+  return renderSummaryTiles([
+    { label: 'Unspent Credits', value: formatThousands(credits) },
+    { label: 'Cargo Hold', value: summarizeCargo() },
+    { label: 'Final Loadout', value: upgradesSummary },
+  ]);
 }
 
 function enterUpgradeShop() {
@@ -1043,7 +1055,7 @@ function enterUpgradeShop() {
   overlayState = 'shop';
   overlay.style.display = 'flex';
   overlayTitle.textContent = 'UPGRADE DOCK';
-  overlayMessage.innerHTML = `Wave ${wave} cleared. Scoop the last drift, then refit before wave ${wave + 1}.`;
+  overlayMessage.textContent = `Wave ${wave} secured. Spend carefully before launch; upgrades are incremental and stack over time.`;
   overlaySummary.innerHTML = renderSalvageSummary();
   overlaySummary.hidden = false;
   overlayRank.hidden = true;
@@ -1089,9 +1101,7 @@ function startGame() {
   ship = createShip();
 
   overlayTitle.textContent = 'VOID DRIFTER';
-  overlayMessage.innerHTML =
-    'Rotate with Left/Right or A/D. Burn forward with Up or W.<br>' +
-    'Crack asteroids, scoop the mineral drops, then spend salvage in the dock between rounds.';
+  overlayMessage.textContent = 'Slow launch. Short bursts. Clear rocks, gather salvage, and refit between waves.';
   difficultySelector.style.display = 'flex';
   startBtn.textContent = 'START GAME';
   updateHud();
@@ -1238,17 +1248,23 @@ function drawAsteroids() {
     ctx.translate(asteroid.x, asteroid.y);
     ctx.rotate(asteroid.rotAngle);
 
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.26)';
+    ctx.beginPath();
+    ctx.ellipse(asteroid.radius * 0.12, asteroid.radius * 0.18, asteroid.radius * 0.92, asteroid.radius * 0.72, asteroid.shadeOffset, 0, Math.PI * 2);
+    ctx.fill();
+
     const fill = ctx.createRadialGradient(
-      -asteroid.radius * 0.28,
-      -asteroid.radius * 0.34,
-      asteroid.radius * 0.12,
+      -asteroid.radius * 0.3,
+      -asteroid.radius * 0.36,
+      asteroid.radius * 0.08,
       0,
       0,
       asteroid.radius * 1.06
     );
-    fill.addColorStop(0, '#4b5563');
-    fill.addColorStop(0.55, '#1f2937');
-    fill.addColorStop(1, '#0f172a');
+    fill.addColorStop(0, '#9a9ca5');
+    fill.addColorStop(0.32, '#676d79');
+    fill.addColorStop(0.72, '#303742');
+    fill.addColorStop(1, '#141821');
 
     ctx.beginPath();
     ctx.moveTo(asteroid.shape[0].x, asteroid.shape[0].y);
@@ -1261,14 +1277,37 @@ function drawAsteroids() {
     ctx.shadowBlur = 18;
     ctx.fill();
     ctx.shadowBlur = 0;
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = 'rgba(240, 244, 255, 0.18)';
+    ctx.lineWidth = 1.8;
+    ctx.strokeStyle = 'rgba(255, 244, 226, 0.22)';
     ctx.stroke();
+
+    ctx.save();
+    ctx.clip();
+    const sheen = ctx.createLinearGradient(-asteroid.radius, -asteroid.radius, asteroid.radius, asteroid.radius);
+    sheen.addColorStop(0, 'rgba(255, 244, 225, 0.15)');
+    sheen.addColorStop(0.38, 'rgba(255, 255, 255, 0)');
+    sheen.addColorStop(1, 'rgba(10, 14, 22, 0.22)');
+    ctx.fillStyle = sheen;
+    ctx.fillRect(-asteroid.radius * 1.2, -asteroid.radius * 1.2, asteroid.radius * 2.4, asteroid.radius * 2.4);
+
+    ctx.fillStyle = 'rgba(11, 15, 21, 0.22)';
+    ctx.beginPath();
+    ctx.arc(asteroid.radius * 0.28, asteroid.radius * 0.22, asteroid.radius * 0.82, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.lineWidth = asteroid.size === 'large' ? 2.2 : 1.5;
+    for (let i = -1; i <= 1; i++) {
+      ctx.beginPath();
+      ctx.arc(-asteroid.radius * 0.2, -asteroid.radius * 0.12, asteroid.radius * (0.38 + i * 0.08), Math.PI * 1.1, Math.PI * 1.95);
+      ctx.stroke();
+    }
+    ctx.restore();
 
     ctx.strokeStyle = mineral.color;
     ctx.shadowColor = mineral.glow;
-    ctx.shadowBlur = 8;
-    ctx.lineWidth = asteroid.size === 'large' ? 2 : 1.6;
+    ctx.shadowBlur = 6;
+    ctx.lineWidth = asteroid.size === 'large' ? 1.7 : 1.3;
     for (const vein of asteroid.veins) {
       ctx.beginPath();
       ctx.moveTo(vein.x1, vein.y1);
@@ -1299,6 +1338,11 @@ function drawShip() {
   ctx.translate(ship.x, ship.y);
   ctx.rotate(ship.angle);
 
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.24)';
+  ctx.beginPath();
+  ctx.ellipse(-1, 2, stats.radius * 0.96, stats.radius * 0.72, 0, 0, Math.PI * 2);
+  ctx.fill();
+
   if (shieldCharges > 0 || ship.invulnerable) {
     ctx.beginPath();
     ctx.arc(0, 0, stats.radius + 7 + Math.sin(performance.now() * 0.01) * 1.5, 0, Math.PI * 2);
@@ -1311,63 +1355,111 @@ function drawShip() {
   }
 
   if (ship.thrusting) {
-    const flameLength = 18 + upgrades.engine * 5 + Math.random() * 8;
-    const flame = ctx.createLinearGradient(-stats.radius - flameLength, 0, -6, 0);
-    flame.addColorStop(0, 'rgba(255, 130, 65, 0)');
-    flame.addColorStop(0.45, '#ffd166');
-    flame.addColorStop(1, '#60f3ff');
-    ctx.beginPath();
-    ctx.moveTo(-stats.radius * 0.9, -stats.radius * 0.45);
-    ctx.lineTo(-stats.radius - flameLength, 0);
-    ctx.lineTo(-stats.radius * 0.9, stats.radius * 0.45);
-    ctx.closePath();
-    ctx.fillStyle = flame;
-    ctx.shadowColor = 'rgba(255, 190, 92, 0.55)';
-    ctx.shadowBlur = 16;
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    const flameLength = 12 + upgrades.engine * 3 + Math.random() * 5;
+    const thrusters = [-stats.radius * 0.32, 0, stats.radius * 0.32];
+    for (const offsetY of thrusters) {
+      const flame = ctx.createLinearGradient(-stats.radius - flameLength, offsetY, -3, offsetY);
+      flame.addColorStop(0, 'rgba(255, 116, 55, 0)');
+      flame.addColorStop(0.45, '#ffd166');
+      flame.addColorStop(1, '#fff7d1');
+      ctx.beginPath();
+      ctx.moveTo(-stats.radius * 0.78, offsetY - 2.2);
+      ctx.lineTo(-stats.radius - flameLength, offsetY);
+      ctx.lineTo(-stats.radius * 0.78, offsetY + 2.2);
+      ctx.closePath();
+      ctx.fillStyle = flame;
+      ctx.shadowColor = 'rgba(255, 190, 92, 0.42)';
+      ctx.shadowBlur = 14;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
   }
 
+  const hullPoints = [
+    { x: stats.radius + 4, y: 0 },
+    { x: stats.radius * 0.22, y: -stats.radius * 0.52 },
+    { x: -stats.radius * 0.16, y: -stats.radius * 0.86 },
+    { x: -stats.radius * 0.9, y: -stats.radius * 0.56 },
+    { x: -stats.radius * 0.64, y: 0 },
+    { x: -stats.radius * 0.9, y: stats.radius * 0.56 },
+    { x: -stats.radius * 0.16, y: stats.radius * 0.86 },
+    { x: stats.radius * 0.22, y: stats.radius * 0.52 },
+  ];
+
   ctx.beginPath();
-  ctx.moveTo(stats.radius + 6, 0);
-  ctx.lineTo(-stats.radius + 2, -stats.radius * 0.82);
-  ctx.lineTo(-stats.radius * 0.48, -stats.radius * 0.22);
-  ctx.lineTo(-stats.radius * 0.82, 0);
-  ctx.lineTo(-stats.radius * 0.48, stats.radius * 0.22);
-  ctx.lineTo(-stats.radius + 2, stats.radius * 0.82);
+  ctx.moveTo(hullPoints[0].x, hullPoints[0].y);
+  for (let i = 1; i < hullPoints.length; i++) {
+    ctx.lineTo(hullPoints[i].x, hullPoints[i].y);
+  }
   ctx.closePath();
   const hull = ctx.createLinearGradient(-stats.radius, -stats.radius, stats.radius, stats.radius);
-  hull.addColorStop(0, '#e2f3ff');
-  hull.addColorStop(0.35, '#8ce9ff');
-  hull.addColorStop(1, '#0ea5a4');
+  hull.addColorStop(0, '#f3f1ec');
+  hull.addColorStop(0.35, '#b7c0cc');
+  hull.addColorStop(0.72, '#6f7783');
+  hull.addColorStop(1, '#2a2f39');
   ctx.fillStyle = hull;
-  ctx.shadowColor = 'rgba(96, 243, 255, 0.42)';
-  ctx.shadowBlur = 18;
+  ctx.shadowColor = 'rgba(255, 188, 119, 0.16)';
+  ctx.shadowBlur = 12;
   ctx.fill();
   ctx.shadowBlur = 0;
-  ctx.strokeStyle = '#dffaff';
-  ctx.lineWidth = 1.6;
+  ctx.strokeStyle = 'rgba(255, 248, 237, 0.65)';
+  ctx.lineWidth = 1.4;
   ctx.stroke();
 
-  ctx.fillStyle = '#082f49';
+  ctx.fillStyle = '#7a1f1f';
   ctx.beginPath();
-  ctx.moveTo(stats.radius * 0.22, 0);
-  ctx.lineTo(-stats.radius * 0.3, -stats.radius * 0.38);
-  ctx.lineTo(-stats.radius * 0.5, 0);
-  ctx.lineTo(-stats.radius * 0.3, stats.radius * 0.38);
+  ctx.moveTo(stats.radius * 0.26, 0);
+  ctx.lineTo(-stats.radius * 0.08, -stats.radius * 0.22);
+  ctx.lineTo(-stats.radius * 0.54, -stats.radius * 0.22);
+  ctx.lineTo(-stats.radius * 0.54, stats.radius * 0.22);
+  ctx.lineTo(-stats.radius * 0.08, stats.radius * 0.22);
   ctx.closePath();
   ctx.fill();
 
+  ctx.fillStyle = '#442916';
+  ctx.beginPath();
+  ctx.moveTo(stats.radius * 0.16, 0);
+  ctx.lineTo(-stats.radius * 0.1, -stats.radius * 0.3);
+  ctx.lineTo(-stats.radius * 0.34, 0);
+  ctx.lineTo(-stats.radius * 0.1, stats.radius * 0.3);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#d7a53a';
+  ctx.beginPath();
+  ctx.moveTo(stats.radius * 0.48, 0);
+  ctx.lineTo(stats.radius * 0.06, -stats.radius * 0.16);
+  ctx.lineTo(stats.radius * 0.06, stats.radius * 0.16);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(255, 243, 215, 0.5)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(-stats.radius * 0.54, 0);
+  ctx.lineTo(stats.radius * 0.45, 0);
+  ctx.moveTo(-stats.radius * 0.12, -stats.radius * 0.48);
+  ctx.lineTo(stats.radius * 0.14, -stats.radius * 0.12);
+  ctx.moveTo(-stats.radius * 0.12, stats.radius * 0.48);
+  ctx.lineTo(stats.radius * 0.14, stats.radius * 0.12);
+  ctx.stroke();
+
   if (upgrades.cannon > 0) {
-    ctx.strokeStyle = '#f8fafc';
-    ctx.lineWidth = 3;
-    const wingOffset = 6 + upgrades.cannon * 2;
+    ctx.strokeStyle = '#fff2d1';
+    ctx.lineWidth = 2.2;
+    const wingOffset = 5 + upgrades.cannon * 1.5;
     ctx.beginPath();
-    ctx.moveTo(4, -wingOffset);
-    ctx.lineTo(stats.radius + 3, -wingOffset);
-    ctx.moveTo(4, wingOffset);
-    ctx.lineTo(stats.radius + 3, wingOffset);
+    ctx.moveTo(5, -wingOffset);
+    ctx.lineTo(stats.radius + 2, -wingOffset);
+    ctx.moveTo(5, wingOffset);
+    ctx.lineTo(stats.radius + 2, wingOffset);
     ctx.stroke();
+  }
+
+  if (upgrades.engine > 0) {
+    ctx.fillStyle = 'rgba(255, 205, 126, 0.74)';
+    ctx.fillRect(-stats.radius * 0.92, -stats.radius * 0.48, 3, 6);
+    ctx.fillRect(-stats.radius * 0.92, stats.radius * 0.42, 3, 6);
   }
 
   ctx.restore();
@@ -1522,9 +1614,7 @@ function gameLoop(timestamp) {
 
 function resetOverlayToStart() {
   overlayTitle.textContent = 'VOID DRIFTER';
-  overlayMessage.innerHTML =
-    'Rotate with Left/Right or A/D. Burn forward with Up or W.<br>' +
-    'Crack asteroids, scoop the mineral drops, then spend salvage in the dock between rounds.';
+  overlayMessage.textContent = 'Slow launch. Short bursts. Clear rocks, gather salvage, and refit between waves.';
   overlaySummary.hidden = true;
   overlayRank.hidden = true;
   shopPanel.hidden = true;

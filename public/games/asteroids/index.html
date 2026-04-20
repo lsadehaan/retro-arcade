@@ -26,9 +26,9 @@
     .game-main h1 {
       font-size: 1.45rem;
       letter-spacing: 0.22em;
-      text-shadow: 0 0 12px rgba(91, 243, 255, 0.6), 0 0 22px rgba(80, 255, 170, 0.35);
+      text-shadow: 0 0 14px rgba(255, 186, 121, 0.3), 0 0 24px rgba(255, 121, 89, 0.18);
       margin-bottom: 0.45rem;
-      color: #7fffd8;
+      color: #ffd7a1;
       text-align: center;
     }
     #hud {
@@ -38,14 +38,14 @@
       width: min(700px, 100%);
       margin-bottom: 0.55rem;
       padding: 0.85rem 1rem;
-      border: 1px solid rgba(111, 255, 220, 0.28);
+      border: 1px solid rgba(255, 190, 116, 0.24);
       background:
-        linear-gradient(135deg, rgba(6, 12, 30, 0.92), rgba(3, 8, 18, 0.76)),
-        radial-gradient(circle at top left, rgba(0, 255, 255, 0.12), transparent 42%);
-      box-shadow: 0 0 18px rgba(0, 255, 255, 0.14);
+        linear-gradient(135deg, rgba(17, 20, 34, 0.96), rgba(7, 10, 19, 0.88)),
+        radial-gradient(circle at top left, rgba(255, 170, 94, 0.12), transparent 44%);
+      box-shadow: 0 16px 28px rgba(0, 0, 0, 0.28), 0 0 20px rgba(255, 170, 94, 0.12);
       border-radius: 10px;
       font-size: 0.82rem;
-      color: #d8fcff;
+      color: #ecf1ff;
     }
     .hud-block {
       display: flex;
@@ -57,11 +57,11 @@
       font-size: 0.58rem;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: rgba(166, 236, 255, 0.7);
+      color: rgba(255, 207, 145, 0.7);
     }
     .hud-value {
-      color: #7fffd8;
-      text-shadow: 0 0 8px rgba(102, 255, 214, 0.4);
+      color: #fff4da;
+      text-shadow: 0 0 8px rgba(255, 188, 109, 0.18);
       font-size: 0.86rem;
       white-space: nowrap;
       overflow: hidden;
@@ -73,15 +73,15 @@
       border-radius: 18px;
       overflow: hidden;
       background:
-        radial-gradient(circle at top, rgba(58, 92, 255, 0.2), transparent 30%),
-        radial-gradient(circle at bottom right, rgba(255, 155, 74, 0.12), transparent 30%),
-        linear-gradient(180deg, rgba(4, 10, 24, 0.9), rgba(1, 3, 11, 1));
-      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45), 0 0 22px rgba(75, 255, 197, 0.16);
+        radial-gradient(circle at top, rgba(92, 114, 255, 0.14), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(255, 156, 94, 0.14), transparent 32%),
+        linear-gradient(180deg, rgba(9, 14, 27, 0.96), rgba(1, 3, 11, 1));
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45), 0 0 22px rgba(255, 170, 94, 0.14);
     }
     canvas {
       display: block;
-      border: 1px solid rgba(106, 255, 221, 0.6);
-      box-shadow: inset 0 0 24px rgba(108, 255, 217, 0.08);
+      border: 1px solid rgba(255, 187, 118, 0.48);
+      box-shadow: inset 0 0 24px rgba(255, 193, 121, 0.08);
       max-width: 100%;
       height: auto;
       touch-action: none;
@@ -95,58 +95,133 @@
       align-items: center;
       justify-content: center;
       padding: 1rem;
-      background: rgba(1, 4, 12, 0.68);
-      backdrop-filter: blur(8px);
-      color: #d8fcff;
+      overflow-y: auto;
+      background: rgba(4, 5, 9, 0.74);
+      backdrop-filter: blur(10px);
+      color: #eef2ff;
     }
     .overlay-card {
       width: min(92%, 520px);
-      padding: 1.2rem 1.15rem 1.1rem;
-      border: 1px solid rgba(103, 255, 223, 0.38);
+      max-height: min(500px, calc(100vh - 96px));
+      overflow-y: auto;
+      padding: 1.1rem 1rem 1rem;
+      border: 1px solid rgba(255, 188, 119, 0.32);
       border-radius: 18px;
       background:
-        linear-gradient(160deg, rgba(5, 14, 31, 0.96), rgba(6, 11, 24, 0.92)),
-        radial-gradient(circle at top right, rgba(0, 255, 255, 0.14), transparent 38%);
-      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.38), 0 0 18px rgba(111, 255, 220, 0.18);
+        linear-gradient(160deg, rgba(24, 27, 42, 0.97), rgba(10, 12, 20, 0.95)),
+        radial-gradient(circle at top right, rgba(255, 168, 97, 0.14), transparent 38%);
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.42), 0 0 18px rgba(255, 182, 101, 0.16);
       display: flex;
       flex-direction: column;
-      gap: 0.85rem;
+      gap: 0.8rem;
       align-items: stretch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 188, 119, 0.48) rgba(255, 255, 255, 0.06);
+    }
+    .overlay-hero {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .overlay-badge {
+      align-self: center;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255, 204, 149, 0.75);
     }
     #overlay h2 {
-      font-size: 1.65rem;
-      text-shadow: 0 0 10px rgba(104, 255, 226, 0.55);
-      letter-spacing: 0.22em;
+      font-size: 1.48rem;
+      text-shadow: 0 0 10px rgba(255, 186, 121, 0.3);
+      letter-spacing: 0.18em;
       font-family: var(--font-pixel);
       text-align: center;
-      color: #9fffe0;
+      color: #fff0d3;
       margin: 0;
+    }
+    .overlay-brief {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.7rem;
+    }
+    .brief-card {
+      border: 1px solid rgba(255, 188, 119, 0.14);
+      border-radius: 14px;
+      padding: 0.8rem 0.85rem;
+      background: rgba(7, 11, 21, 0.74);
+      min-width: 0;
+    }
+    .brief-label {
+      display: block;
+      margin-bottom: 0.45rem;
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255, 205, 151, 0.72);
     }
     #overlay-message {
-      font-size: 0.93rem;
-      opacity: 0.92;
-      text-align: center;
-      line-height: 1.65;
+      font-size: 0.8rem;
+      opacity: 0.94;
+      line-height: 1.55;
       margin: 0;
+      color: #e7ecfb;
+    }
+    .control-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.42rem;
+    }
+    .control-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.28rem 0.45rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 188, 119, 0.18);
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 0.62rem;
+      color: #fff0d2;
+      white-space: nowrap;
     }
     .overlay-summary {
-      border: 1px solid rgba(120, 255, 228, 0.16);
-      border-radius: 12px;
-      padding: 0.85rem 0.95rem;
-      background: rgba(7, 15, 30, 0.72);
-      font-size: 0.79rem;
-      line-height: 1.55;
+      font-size: 0.75rem;
+      line-height: 1.45;
     }
     .overlay-summary strong {
-      color: #89ffe5;
+      color: #fff0cf;
       font-weight: 700;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.6rem;
+    }
+    .summary-tile {
+      min-width: 0;
+      border-radius: 13px;
+      border: 1px solid rgba(255, 188, 119, 0.12);
+      background: rgba(7, 12, 24, 0.75);
+      padding: 0.75rem;
+    }
+    .summary-kicker {
+      display: block;
+      font-size: 0.55rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255, 205, 151, 0.68);
+      margin-bottom: 0.28rem;
+    }
+    .summary-value {
+      display: block;
+      color: #f4f6ff;
+      line-height: 1.45;
+      word-break: break-word;
     }
     .overlay-rank {
       text-align: center;
       font-size: 0.86rem;
-      color: #86ffe1;
+      color: #ffdaa9;
       min-height: 1.2rem;
-      text-shadow: 0 0 8px rgba(134, 255, 225, 0.38);
+      text-shadow: 0 0 8px rgba(255, 188, 119, 0.18);
     }
     #difficulty-selector {
       display: flex;
@@ -155,9 +230,9 @@
       flex-wrap: wrap;
     }
     .diff-btn {
-      background: rgba(0, 0, 0, 0.16);
-      border: 1px solid rgba(118, 255, 232, 0.55);
-      color: #a9fff1;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 190, 116, 0.42);
+      color: #ffe0b5;
       font-family: inherit;
       font-size: 0.75rem;
       padding: 0.38rem 0.8rem;
@@ -172,17 +247,17 @@
     }
     .diff-btn.diff-active {
       opacity: 1;
-      box-shadow: 0 0 12px rgba(90, 255, 222, 0.34);
+      box-shadow: 0 0 12px rgba(255, 182, 101, 0.24);
       border-width: 2px;
     }
     .shop-panel {
-      border: 1px solid rgba(118, 255, 232, 0.18);
+      border: 1px solid rgba(255, 188, 119, 0.16);
       border-radius: 14px;
-      padding: 0.9rem;
-      background: rgba(8, 15, 30, 0.74);
+      padding: 0.85rem;
+      background: rgba(8, 13, 24, 0.82);
       display: flex;
       flex-direction: column;
-      gap: 0.65rem;
+      gap: 0.55rem;
     }
     .shop-panel[hidden],
     .overlay-summary[hidden],
@@ -197,38 +272,43 @@
       font-size: 0.72rem;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: #98fff0;
+      color: #ffe0b4;
     }
     .shop-status {
       font-size: 0.74rem;
-      color: rgba(216, 252, 255, 0.78);
+      color: rgba(233, 239, 255, 0.76);
       min-height: 1.1rem;
     }
     .shop-tip {
       font-size: 0.68rem;
-      color: rgba(170, 241, 255, 0.62);
+      color: rgba(255, 209, 158, 0.58);
       text-align: center;
     }
     .shop-items {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0.65rem;
+      max-height: 255px;
+      overflow-y: auto;
+      padding-right: 0.2rem;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 188, 119, 0.42) rgba(255, 255, 255, 0.05);
     }
     .shop-item {
-      border: 1px solid rgba(109, 255, 220, 0.22);
+      border: 1px solid rgba(255, 188, 119, 0.18);
       border-radius: 12px;
-      background: linear-gradient(180deg, rgba(14, 26, 48, 0.85), rgba(7, 14, 26, 0.9));
-      color: #dbffff;
-      padding: 0.78rem;
+      background: linear-gradient(180deg, rgba(24, 30, 47, 0.92), rgba(10, 12, 19, 0.95));
+      color: #eef2ff;
+      padding: 0.72rem;
       text-align: left;
       cursor: pointer;
       transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
-      min-height: 126px;
+      min-height: 104px;
     }
     .shop-item:hover:not(:disabled) {
       transform: translateY(-2px);
-      border-color: rgba(119, 255, 229, 0.55);
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.22), 0 0 14px rgba(102, 255, 217, 0.16);
+      border-color: rgba(255, 196, 126, 0.5);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.22), 0 0 14px rgba(255, 186, 121, 0.14);
     }
     .shop-item:disabled {
       opacity: 0.48;
@@ -239,19 +319,19 @@
       justify-content: space-between;
       gap: 0.6rem;
       font-size: 0.78rem;
-      color: #89ffe5;
+      color: #ffe4bd;
       margin-bottom: 0.3rem;
     }
     .shop-item-key {
-      color: rgba(255, 215, 115, 0.92);
+      color: rgba(255, 204, 124, 0.92);
       font-size: 0.68rem;
     }
     .shop-item-desc {
-      font-size: 0.72rem;
-      color: rgba(219, 255, 255, 0.78);
-      line-height: 1.45;
-      min-height: 3.2rem;
-      margin-bottom: 0.45rem;
+      font-size: 0.68rem;
+      color: rgba(226, 233, 251, 0.76);
+      line-height: 1.4;
+      min-height: 2.85rem;
+      margin-bottom: 0.38rem;
     }
     .shop-item-meta {
       display: flex;
@@ -260,22 +340,22 @@
       font-size: 0.68rem;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      color: rgba(164, 240, 255, 0.65);
+      color: rgba(255, 204, 149, 0.65);
     }
     #overlay button.action-btn {
-      background: linear-gradient(180deg, rgba(0, 0, 0, 0.12), rgba(10, 24, 26, 0.22));
-      border: 1px solid rgba(112, 255, 222, 0.62);
-      color: #9fffe8;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(34, 17, 10, 0.3));
+      border: 1px solid rgba(255, 190, 116, 0.5);
+      color: #fff1d6;
       font-family: inherit;
       font-size: 1rem;
       padding: 0.65rem 1.2rem;
       cursor: pointer;
-      text-shadow: 0 0 6px rgba(120, 255, 229, 0.36);
-      box-shadow: 0 0 14px rgba(94, 255, 218, 0.18);
+      text-shadow: 0 0 6px rgba(255, 186, 121, 0.18);
+      box-shadow: 0 0 14px rgba(255, 186, 121, 0.14);
       letter-spacing: 0.16em;
     }
     #overlay button.action-btn:hover {
-      background: rgba(51, 255, 180, 0.08);
+      background: rgba(255, 190, 116, 0.08);
     }
     .lb-diff {
       font-size: 0.6rem;
@@ -285,16 +365,20 @@
     .game-leaderboard {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 16px;
+      border-radius: 16px;
+      padding: 18px 16px;
       min-width: 220px;
       max-width: 280px;
+      background:
+        linear-gradient(180deg, rgba(17, 20, 34, 0.98), rgba(8, 10, 16, 0.95)),
+        radial-gradient(circle at top left, rgba(255, 170, 94, 0.1), transparent 34%);
+      box-shadow: 0 18px 32px rgba(0, 0, 0, 0.25);
     }
     .game-leaderboard h3 {
       font-family: var(--font-pixel);
       font-size: 0.55rem;
-      color: var(--neon-gold);
-      text-shadow: 0 0 6px rgba(255,215,0,0.4);
+      color: #ffe0ad;
+      text-shadow: 0 0 6px rgba(255, 186, 121, 0.18);
       margin-bottom: 12px;
       text-align: center;
     }
@@ -334,6 +418,10 @@
       .overlay-card {
         width: min(96%, 560px);
       }
+      .overlay-brief,
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
     }
     @media (max-width: 480px) {
       #hud {
@@ -355,20 +443,24 @@
         gap: 0.65rem;
         padding: 0.9rem 0.85rem 1rem;
       }
+      .overlay-badge {
+        font-size: 0.52rem;
+        letter-spacing: 0.14em;
+      }
       #overlay h2 {
         font-size: 1.12rem;
         letter-spacing: 0.12em;
       }
       #overlay-message {
-        font-size: 0.74rem;
+        font-size: 0.72rem;
         line-height: 1.45;
       }
-      .overlay-summary {
-        font-size: 0.7rem;
-        padding: 0.7rem 0.75rem;
+      .brief-card,
+      .summary-tile {
+        padding: 0.68rem 0.72rem;
       }
       .shop-item {
-        min-height: 110px;
+        min-height: 98px;
       }
       #overlay button.action-btn {
         font-size: 0.82rem;
@@ -430,11 +522,26 @@
         <canvas id="canvas" width="700" height="520"></canvas>
         <div id="overlay">
           <div class="overlay-card">
-            <h2 id="overlay-title">VOID DRIFTER</h2>
-            <p id="overlay-message">
-              Rotate with Left/Right or A/D. Burn forward with Up or W.<br />
-              Crack asteroids, scoop the mineral drops, then spend salvage in the dock between rounds.
-            </p>
+            <div class="overlay-hero">
+              <span class="overlay-badge">SALVAGE RUN // LOW THRUST START</span>
+              <h2 id="overlay-title">VOID DRIFTER</h2>
+            </div>
+            <div class="overlay-brief">
+              <div class="brief-card">
+                <span class="brief-label">Flight Brief</span>
+                <p id="overlay-message">Slow launch. Short bursts. Clear rocks, gather salvage, and refit between waves.</p>
+              </div>
+              <div class="brief-card">
+                <span class="brief-label">Controls</span>
+                <div class="control-pills">
+                  <span class="control-pill">A / D Turn</span>
+                  <span class="control-pill">W Thrust</span>
+                  <span class="control-pill">Space Fire</span>
+                  <span class="control-pill">Q Auto</span>
+                  <span class="control-pill">1-5 Buy</span>
+                </div>
+              </div>
+            </div>
             <div id="overlay-summary" class="overlay-summary" hidden></div>
             <div id="overlay-rank" class="overlay-rank" hidden></div>
             <div id="difficulty-selector">
