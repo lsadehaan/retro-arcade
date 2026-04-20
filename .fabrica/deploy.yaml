@@ -2,11 +2,10 @@
 # Source of truth. Fabrica reads this file on every deploy.
 # Secrets never live here — they live in Windmill vault under f/deploy/<project>/<env>/.
 #
-# Currently running on: staging-retro-arcade-40d01262 (49.13.48.80), under Superiority.
-# When Fabrica is first asked to deploy this project, it will provision a new
-# `staging-retro-arcade` server per the spec below. Coordinate the cutover
-# deliberately — do not trigger a Fabrica deploy without a plan to migrate
-# the Cloudflare tunnel and drain the old VPS.
+# The staging server below is the live one that was originally provisioned by
+# Superiority and now runs production traffic. Fabrica will adopt it in place:
+# look it up by name, rsync the repo, restart via systemd. The server name
+# preserves its original Superiority-era suffix so the lookup matches.
 
 version: 1
 
@@ -14,10 +13,11 @@ environments:
   staging:
     provider: hetzner
     server:
-      name: staging-retro-arcade
+      name: staging-retro-arcade-40d01262
       type: cx23
       image: ubuntu-24.04
       location: fsn1
+      user: root
       ssh_keys:
         - a.dehaan@cerebrosphere.com
         - agent-host
